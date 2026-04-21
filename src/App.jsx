@@ -54,6 +54,20 @@ function useIsMobile() {
   return isMobile;
 }
 
+function useScale() {
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const calc = () => {
+      const s = Math.min(window.innerWidth / 393, window.innerHeight / 852);
+      setScale(Math.min(s, 1)); // 1 이상 확대는 안 함
+    };
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, []);
+  return scale;
+}
+
 /* ─── Design Tokens ──────────────────────────────────────── */
 const C = {
   bg: "#F3EFE3", green: "#344C3D", dark: "#001910",
@@ -1527,6 +1541,7 @@ function RootinApp() {
 /* ─── iPhone 16 Pro Frame ─────────────────────────────────── */
 export default function App() {
   const isMobile = useIsMobile();
+  const scale = useScale();
 
   return (
     <div
@@ -1547,11 +1562,13 @@ export default function App() {
 
       <div
         style={{
-          width: isMobile ? "100%" : 393,
-          height: isMobile ? "100dvh" : 852,
+          width: 393,
+          height: 852,
           borderRadius: isMobile ? 0 : 54,
           overflow: "hidden",
           position: "relative",
+          transform: isMobile ? `scale(${scale})` : "none",
+          transformOrigin: "top center", 
           boxShadow: isMobile
             ? "none"
             : "0 0 0 10px #2a2a2a, 0 0 0 12px #3a3a3a, 0 30px 80px rgba(0,0,0,0.8)",
