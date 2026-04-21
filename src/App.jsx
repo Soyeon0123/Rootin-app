@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "./components/ui/Button";
 import TextInput from "./components/ui/TextInput.jsx";
 import RootinLogo from "./assets/logo/Rootin_logo.svg";
@@ -41,6 +41,18 @@ import RootinBoneFractures from "./assets/illustrations/Symptom_Info/Rootin_Bone
 import RootinMusclePain from "./assets/illustrations/Symptom_Info/Rootin_MusclePain.png";
 import RootinHotFlash from "./assets/illustrations/Symptom_Info/Rootin_HotFlash.png";
 import RootinFatigue from "./assets/illustrations/Symptom_Info/Rootin_Fatigue.png";
+
+// App function (Temporary prototype)
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 480);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return isMobile;
+}
 
 /* ─── Design Tokens ──────────────────────────────────────── */
 const C = {
@@ -1514,7 +1526,7 @@ function RootinApp() {
 
 /* ─── iPhone 16 Pro Frame ─────────────────────────────────── */
 export default function App() {
-  const isMobile = window.innerWidth <= 480;
+  const isMobile = useIsMobile();
 
   return (
     <div
