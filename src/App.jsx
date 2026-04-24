@@ -1,25 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef} from "react";
+import html2canvas from "html2canvas";
 import Button from "./components/ui/Button";
 import TextInput from "./components/ui/TextInput.jsx";
-import RootinLogo from "./assets/logo/Rootin_logo.svg";
+
+import RootinLogo from "./assets/logo/Rootin_logo.svg?react";
 
 // icons — 44px
-import HomeIcon from "./assets/icons/44px/home_icon_44px.svg";
-import HomeIconActive from "./assets/icons/44px/home_icon_Onclick_44px.svg";
-import CalendarIcon from "./assets/icons/44px/calendar_icon_44px.svg";
-import CalendarIconActive from "./assets/icons/44px/calendar_icon_Onclick_44px.svg";
-import TrendIcon from "./assets/icons/44px/trend_icon_44px.svg";
-import InfoIcon from "./assets/icons/44px/info_icon_44px.svg";
-import InfoIconActive from "./assets/icons/44px/info_icon_Onclick_44px.svg";
-import ArrowIcon from "./assets/icons/44px/arrow_icon_44px.svg";
-import ArrowIconActive from "./assets/icons/44px/arrow_icon_Onclick_44px.svg";
+import HomeIcon from "./assets/icons/44px/home_icon_44px.svg?react";
+import HomeIconActive from "./assets/icons/44px/home_icon_Onclick_44px.svg?react";
+import CalendarIcon from "./assets/icons/44px/calendar_icon_44px.svg?react";
+import CalendarIconActive from "./assets/icons/44px/calendar_icon_Onclick_44px.svg?react";
+import TrendIcon from "./assets/icons/44px/trend_icon_44px.svg?react";
+import InfoIcon from "./assets/icons/44px/info_icon_44px.svg?react";
+import InfoIconActive from "./assets/icons/44px/info_icon_Onclick_44px.svg?react";
+import ArrowIcon from "./assets/icons/44px/arrow_icon_44px.svg?react";
+import ArrowIconActive from "./assets/icons/44px/arrow_icon_Onclick_44px.svg?react";
 
 // icons — 24px
-import ArrowLeft from "./assets/icons/24px/simple_arrow_left_icon_24px.svg";
-import ArrowRight from "./assets/icons/24px/simple_arrow_right_icon_24px.svg";
-import UserIcon from "./assets/icons/24px/user_icon_24px.svg";
-import DataIcon from "./assets/icons/24px/data_icon_24px.svg";
-import SettingsIcon from "./assets/icons/24px/settings_icon_24px.svg";
+import ArrowLeft from "./assets/icons/24px/simple_arrow_left_icon_24px.svg?react";
+import ArrowRight from "./assets/icons/24px/simple_arrow_right_icon_24px.svg?react";
+import UserIcon from "./assets/icons/24px/user_icon_24px.svg?react";
+import DataIcon from "./assets/icons/24px/data_icon_24px.svg?react";
+import SettingsIcon from "./assets/icons/24px/settings_icon_24px.svg?react";
 
 // illustrations — character
 import RootinCharacter from "./assets/illustrations/Character/Rootin_main.png";
@@ -41,6 +43,7 @@ import RootinBoneFractures from "./assets/illustrations/Symptom_Info/Rootin_Bone
 import RootinMusclePain from "./assets/illustrations/Symptom_Info/Rootin_MusclePain.png";
 import RootinHotFlash from "./assets/illustrations/Symptom_Info/Rootin_HotFlash.png";
 import RootinFatigue from "./assets/illustrations/Symptom_Info/Rootin_Fatigue.png";
+
 
 // App function (Temporary prototype)
 
@@ -83,8 +86,9 @@ const Sprout = ({ size = 120, locked = false }) => (
   <img src={RootinCharacter} alt="Rootin character" style={{ width: size, height: size, objectFit: "contain", display: "block", opacity: locked ? 0.45 : 1, filter: locked ? "grayscale(100%)" : "none" }} />
 );
 
+// ✅ Logo: img → SVG 컴포넌트
 const Logo = ({ size = 90 }) => (
-  <img src={RootinLogo} alt="Rootin logo" style={{ width: size, height: size, objectFit: "contain", display: "block" }} />
+  <RootinLogo style={{ width: size, height: size, display: "block" }} />
 );
 
 const Scr = ({ children, scroll = false, bg = C.bg, style = {} }) => (
@@ -104,7 +108,7 @@ const ProgBar = ({ v }) => (
   </div>
 );
 
-/* ── Unified back button (always uses ArrowLeft 24px icon) ── */
+// ✅ BackBtn: img → ArrowLeft 컴포넌트
 const BackBtn = ({ go, overlay = false }) => (
   <button onClick={go} style={{
     width: 34, height: 34, border: "none", cursor: "pointer", padding: 0,
@@ -114,24 +118,28 @@ const BackBtn = ({ go, overlay = false }) => (
       : { background: "transparent", marginLeft: -8 }
     ),
   }}>
-    <img src={ArrowLeft} alt="Back" style={{ width: 20, height: 20, display: "block" }} />
+    <ArrowLeft style={{ width: 20, height: 20, display: "block", pointerEvents: "none" }} />
   </button>
 );
 
-/* ── Unified right-arrow icon ── */
+// ✅ ChevronRight: img → ArrowRight 컴포넌트
 const ChevronRight = ({ size = 20 }) => (
-  <img src={ArrowRight} alt="›" style={{ width: size, height: size, display: "block", flexShrink: 0, opacity: 0.5 }} />
+  <ArrowRight style={{ width: size, height: size, display: "block", flexShrink: 0, opacity: 0.5, pointerEvents: "none" }} />
 );
 
 const GhostBtn = ({ children, onClick, style = {} }) => (
   <button onClick={onClick} style={{ background: "transparent", color: C.dark, border: `1.5px solid ${C.border}`, borderRadius: 100, padding: "13px 20px", fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", ...style }}>{children}</button>
 );
 
+// ✅ ArrowBtn: img → 조건부 SVG 컴포넌트
 const ArrowBtn = ({ onClick }) => {
   const [pressed, setPressed] = useState(false);
   return (
     <button onMouseDown={() => setPressed(true)} onMouseUp={() => setPressed(false)} onMouseLeave={() => setPressed(false)} onClick={onClick} style={{ width: 50, height: 50, borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, padding: 0 }}>
-      <img src={pressed ? ArrowIconActive : ArrowIcon} alt="Next" style={{ width: 44, height: 44, display: "block" }} />
+      {pressed
+        ? <ArrowIconActive style={{ width: 44, height: 44, display: "block", pointerEvents: "none" }} />
+        : <ArrowIcon style={{ width: 44, height: 44, display: "block", pointerEvents: "none" }} />
+      }
     </button>
   );
 };
@@ -181,6 +189,7 @@ const Tog = ({ on, flip, color = C.green }) => (
   </div>
 );
 
+// ✅ NavBar: img → 동적 SVG 컴포넌트
 const NavBar = ({ active, go }) => {
   const tabs = [{ id: "home", label: "Home" }, { id: "calendar", label: "Calendar" }, { id: "trends", label: "Trends" }, { id: "info", label: "Info" }];
   const icons = {
@@ -191,12 +200,15 @@ const NavBar = ({ active, go }) => {
   };
   return (
     <div style={{ background: C.bg, borderTop: `1px solid ${C.border}`, flexShrink: 0, height: 88, display: "flex", alignItems: "flex-start", paddingTop: 15, justifyContent: "center", gap: 0 }}>
-      {tabs.map(t => (
-        <button key={t.id} onClick={() => go(t.id)} style={{ width: 44, border: "none", background: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: C.dark, opacity: active === t.id ? 1 : 0.35, transition: "opacity .2s", padding: 0, marginRight: t.id !== "info" ? 32 : 0 }}>
-          <img src={active === t.id ? icons[t.id].active : icons[t.id].default} alt={`${t.label} icon`} style={{ width: 32, height: 32, display: "block" }} />
-          <span style={{ fontSize: 10, fontFamily: "'DM Sans', sans-serif", color: C.dark, fontWeight: active === t.id ? 600 : 400 }}>{t.label}</span>
-        </button>
-      ))}
+      {tabs.map(t => {
+        const Icon = active === t.id ? icons[t.id].active : icons[t.id].default;
+        return (
+          <button key={t.id} onClick={() => go(t.id)} style={{ width: 44, border: "none", background: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: C.dark, opacity: active === t.id ? 1 : 0.35, transition: "opacity .2s", padding: 0, marginRight: t.id !== "info" ? 32 : 0 }}>
+            <Icon style={{ width: 32, height: 32, display: "block", pointerEvents: "none" }} />
+            <span style={{ fontSize: 10, fontFamily: "'DM Sans', sans-serif", color: C.dark, fontWeight: active === t.id ? 600 : 400 }}>{t.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 };
@@ -228,8 +240,6 @@ const SliderRow = ({ label, value, set }) => (
   </div>
 );
 
-/* ─── ArticlePage — unified layout matching bcSummary style ─ */
-/* heroImg: photo → objectFit cover; character PNG → objectFit contain on white */
 const ArticlePage = ({ title, body, back, heroImg, isPhoto = false }) => (
   <Scr scroll>
     <div style={{ position: "relative", flexShrink: 0 }}>
@@ -841,22 +851,23 @@ function RootinApp() {
     <ScrWithNav activeTab={tab} navGo={navTab}>
       <div style={{ padding: "104px 20px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", gap: 16 }}>
+          {/* ✅ UserIcon, DataIcon: img → SVG 컴포넌트 */}
           <button onClick={() => go("myPage")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}>
-            <img src={UserIcon} alt="Profile" style={{ width: 24, height: 24, display: "block" }} />
+            <UserIcon style={{ width: 24, height: 24, display: "block", pointerEvents: "none"}} />
           </button>
           <button onClick={() => go("moments")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}>
-            <img src={DataIcon} alt="Moments" style={{ width: 24, height: 24, display: "block" }} />
+            <DataIcon style={{ width: 24, height: 24, display: "block", pointerEvents: "none" }} />
           </button>
         </div>
+        {/* ✅ SettingsIcon: img → SVG 컴포넌트 */}
         <button onClick={() => go("settings")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}>
-          <img src={SettingsIcon} alt="Settings" style={{ width: 24, height: 24, display: "block" }} />
+          <SettingsIcon style={{ width: 24, height: 24, display: "block", pointerEvents: "none" }} />
         </button>
       </div>
       <div style={{ padding: "0 20px 14px" }}>
         <p style={{ fontSize: 13, color: C.gray }}>Today, 28 August</p>
         <h2 style={{ fontSize: 26, fontWeight: 700, marginTop: 2 }}>Health Check-in</h2>
       </div>
-      {/* Character display — white bg */}
       <div style={{ margin: "0 20px 16px", background: "white", borderRadius: 22, height: 210, display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${C.border}` }}>
         <Sprout size={155} />
       </div>
@@ -1058,7 +1069,6 @@ function RootinApp() {
 
   /* ─── ROOTIN COLLECTION ───────────────────────────── */
   if (scr === "rootinColl") {
-    // 6 unlocked variants + 2 locked placeholders
     const chars = [
       ...VAR_IMAGES.map((img, i) => ({ name: `Rootin ${i + 1}`, img, unlocked: true })),
       { name: "Rootin 7", img: null, unlocked: false },
@@ -1092,7 +1102,6 @@ function RootinApp() {
     return (
       <Scr scroll>
         <div style={{ position: "relative", flexShrink: 0 }}>
-          {/* Full-bleed image — white bg, same style as bcSummary */}
           <div style={{ height: 400, background: "white", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
             <img src={varImg} alt="Rootin character" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
           </div>
@@ -1144,13 +1153,14 @@ function RootinApp() {
           <h2 style={{ fontSize: 24, fontWeight: 700 }}>Moments</h2>
           <button style={{ background: C.lightGray, border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", color: C.dark }}>Export ↑</button>
         </div>
+        {/* ✅ ArrowLeft, ArrowRight: img → SVG 컴포넌트 */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 20px" }}>
           <button style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
-            <img src={ArrowLeft} alt="Previous" style={{ width: 20, height: 20, opacity: 0.5 }} />
+            <ArrowLeft style={{ width: 20, height: 20, opacity: 0.5, pointerEvents: "none" }} />
           </button>
           <span style={{ fontSize: 16, fontWeight: 600 }}>Today</span>
           <button style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
-            <img src={ArrowRight} alt="Next" style={{ width: 20, height: 20, opacity: 0.5 }} />
+            <ArrowRight style={{ width: 20, height: 20, opacity: 0.5, pointerEvents: "none" }} />
           </button>
         </div>
         <div style={{ display: "flex", gap: 8, padding: "0 20px 16px", overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
@@ -1202,13 +1212,14 @@ function RootinApp() {
           </div>
         </div>
         <div style={{ margin: "0 16px 20px", background: "white", borderRadius: 22, padding: "18px 16px 24px", border: `1px solid ${C.border}`, flex: 1 }}>
+          {/* ✅ ArrowLeft, ArrowRight: img → SVG 컴포넌트 */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
             <button style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
-              <img src={ArrowLeft} alt="Prev" style={{ width: 20, height: 20, opacity: 0.5 }} />
+              <ArrowLeft style={{ width: 20, height: 20, opacity: 0.5, pointerEvents: "none" }} />
             </button>
             <p style={{ fontSize: 15, fontWeight: 600 }}>October 2025</p>
             <button style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
-              <img src={ArrowRight} alt="Next" style={{ width: 20, height: 20, opacity: 0.5 }} />
+              <ArrowRight style={{ width: 20, height: 20, opacity: 0.5, pointerEvents: "none" }} />
             </button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: 10 }}>
@@ -1429,7 +1440,7 @@ function RootinApp() {
     ]}
   />;
 
-  /* ─── SYMPTOM ARTICLES (white hero bg, contain) ──── */
+  /* ─── SYMPTOM ARTICLES ──────────────────────────── */
   if (scr === "aCardio")   return <ArticlePage back={back} heroImg={RootinCardiovascular} title="Heart Health (Cardiotoxicity)" body={[
     <h3 key="r" style={{fontSize:15,fontWeight:700,marginBottom:8}}>Risk</h3>,
     "Extended AI therapy is linked to a modest increase in cardiovascular risk, with about a 19% higher risk compared to shorter treatment durations.¹⁶",
@@ -1542,58 +1553,80 @@ function RootinApp() {
 export default function App() {
   const isMobile = useIsMobile();
   const scale = useScale();
+  const screenRef = useRef(null);
+
+  const handleCapture = async () => {
+    await document.fonts.ready;
+    const canvas = await html2canvas(screenRef.current, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+    });
+    const link = document.createElement("a");
+    link.download = "screen.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100dvh",
-        background: isMobile ? C.bg : "#111",
-        fontFamily: "'DM Sans', sans-serif",
-      }}
-    >
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: "100dvh",
+      background: isMobile ? C.bg : "#111",
+      fontFamily: "'DM Sans', sans-serif",
+    }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { display: none; }
       `}</style>
 
-      <div
-        style={{
-          width: 393,
-          height: 852,
-          borderRadius: isMobile ? 0 : 54,
-          overflow: "hidden",
-          position: "relative",
-          transform: isMobile ? `scale(${scale})` : "none",
-          transformOrigin: "top center", 
-          boxShadow: isMobile
-            ? "none"
-            : "0 0 0 10px #2a2a2a, 0 0 0 12px #3a3a3a, 0 30px 80px rgba(0,0,0,0.8)",
-          flexShrink: 0,
-          background: C.bg,
-        }}
-      >
+      <div style={{
+        width: 393,
+        height: 852,
+        borderRadius: isMobile ? 0 : 54,
+        overflow: "hidden",
+        position: "relative",
+        transform: isMobile ? `scale(${scale})` : "none",
+        transformOrigin: "top center",
+        boxShadow: isMobile
+          ? "none"
+          : "0 0 0 10px #2a2a2a, 0 0 0 12px #3a3a3a, 0 30px 80px rgba(0,0,0,0.8)",
+        flexShrink: 0,
+        background: C.bg,
+      }}>
         {!isMobile && (
-          <div
-            style={{
-              position: "absolute",
-              top: 14,
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: 120,
-              height: 34,
-              borderRadius: 20,
-              background: "#000",
-              zIndex: 100,
-            }}
-          />
+          <div style={{
+            position: "absolute",
+            top: 14, left: "50%",
+            transform: "translateX(-50%)",
+            width: 120, height: 34,
+            borderRadius: 20,
+            background: "#000",
+            zIndex: 100,
+          }} />
         )}
 
-        <RootinApp />
+        {/* ✅ ref — 앱 화면만 캡처 */}
+        <div ref={screenRef} style={{ width: "100%", height: "100%" }}>
+          <RootinApp />
+        </div>
       </div>
+
+      {!isMobile && (
+        <button onClick={handleCapture} style={{
+          position: "fixed", bottom: 32, right: 32,
+          background: "#344C3D", color: "white",
+          border: "none", borderRadius: 100,
+          padding: "12px 24px", fontSize: 15,
+          fontWeight: 600, cursor: "pointer",
+          fontFamily: "'DM Sans', sans-serif",
+        }}>
+          📷 캡처
+        </button>
+      )}
     </div>
   );
 }
