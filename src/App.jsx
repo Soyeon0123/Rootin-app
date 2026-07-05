@@ -5,45 +5,114 @@ import TextInput from "./components/ui/TextInput.jsx";
 
 import RootinLogo from "./assets/logo/Rootin_logo.svg?react";
 
-// icons — 44px
-import HomeIcon from "./assets/icons/44px/home_icon_44px.svg?react";
-import HomeIconActive from "./assets/icons/44px/home_icon_Onclick_44px.svg?react";
-import CalendarIcon from "./assets/icons/44px/calendar_icon_44px.svg?react";
-import CalendarIconActive from "./assets/icons/44px/calendar_icon_Onclick_44px.svg?react";
-import TrendIcon from "./assets/icons/44px/trend_icon_44px.svg?react";
-import InfoIcon from "./assets/icons/44px/info_icon_44px.svg?react";
-import InfoIconActive from "./assets/icons/44px/info_icon_Onclick_44px.svg?react";
-import ArrowIcon from "./assets/icons/44px/arrow_icon_44px.svg?react";
-import ArrowIconActive from "./assets/icons/44px/arrow_icon_Onclick_44px.svg?react";
+/* ─── Resilient asset loading ────────────────────────────────
+   Exact hard-coded filenames kept breaking on tiny naming differences
+   (casing, dash vs underscore, "onclick" vs "Onclick", etc). Instead,
+   we glob-load every file in each folder and pick the one whose name
+   *contains* the keywords we want, ignoring case/punctuation. Everything
+   (icons included) is loaded as a plain image URL string and rendered
+   with <img src={...}/> — works the same for .svg and .png, no special
+   component wrapping needed. A miss just returns null (a harmless empty
+   <img>, never a crash) and prints every keyword tried + every file
+   actually found in that folder to the browser console — copy that if
+   something still doesn't show. */
+const icon24Modules = import.meta.glob("./assets/icons/Icon_24px/*.svg", { eager: true, import: "default" });
+const icon44Modules = import.meta.glob("./assets/icons/Icon_44px/*.svg", { eager: true, import: "default" });
+const charModules = import.meta.glob("./assets/illustrations/Character/*.{png,jpg,jpeg,PNG,JPG}", { eager: true, import: "default" });
+const growModules = import.meta.glob("./assets/illustrations/Grow/*.{png,jpg,jpeg,PNG,JPG}", { eager: true, import: "default" });
+const basicInfoModules = import.meta.glob("./assets/illustrations/Basic_Info/*.{png,jpg,jpeg,PNG,JPG}", { eager: true, import: "default" });
+const symptomModules = import.meta.glob("./assets/illustrations/Symptom_Info/*.{png,jpg,jpeg,PNG,JPG}", { eager: true, import: "default" });
 
-// icons — 24px
-import ArrowLeft from "./assets/icons/24px/simple_arrow_left_icon_24px.svg?react";
-import ArrowRight from "./assets/icons/24px/simple_arrow_right_icon_24px.svg?react";
-import UserIcon from "./assets/icons/24px/user_icon_24px.svg?react";
-import DataIcon from "./assets/icons/24px/data_icon_24px.svg?react";
-import SettingsIcon from "./assets/icons/24px/settings_icon_24px.svg?react";
+const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+function findAsset(modules, mustInclude, mustExclude = []) {
+  const entries = Object.entries(modules);
+  const hit = entries.find(([path]) => {
+    const p = norm(path);
+    return mustInclude.every(k => p.includes(norm(k))) && !mustExclude.some(k => p.includes(norm(k)));
+  });
+  if (!hit) {
+    console.warn(`[assets] no file matched [${mustInclude.join(", ")}]` + (mustExclude.length ? ` (excluding ${mustExclude.join(", ")})` : "") + `. Files found in this folder:`, entries.map(([p]) => p));
+    return null;
+  }
+  return hit[1];
+}
+const icon24 = (...include) => findAsset(icon24Modules, include, ["onclick"]);
+const icon24Active = (...include) => findAsset(icon24Modules, [...include, "onclick"]);
+const icon44 = (...include) => findAsset(icon44Modules, include, ["onclick"]);
+const icon44Active = (...include) => findAsset(icon44Modules, [...include, "onclick"]);
+const char = (...include) => findAsset(charModules, include);
+const grow = (...include) => findAsset(growModules, include);
+const basicInfo = (...include) => findAsset(basicInfoModules, include);
+const symptom = (...include) => findAsset(symptomModules, include);
 
-// illustrations — character
-import RootinCharacter from "./assets/illustrations/Character/Rootin_main.png";
-import RootinVar1 from "./assets/illustrations/Character/Rootin_Var1.png";
-import RootinVar2 from "./assets/illustrations/Character/Rootin_Var2.png";
-import RootinVar3 from "./assets/illustrations/Character/Rootin_Var3.png";
-import RootinVar4 from "./assets/illustrations/Character/Rootin_Var4.png";
-import RootinVar5 from "./assets/illustrations/Character/Rootin_Var5.png";
-import RootinVar6 from "./assets/illustrations/Character/Rootin_Var6.png";
+// icons — 44px versions for the nav bar + the survey "Next" button, everything
+// else uses the 24px versions. All are plain image URLs, used as <img src=.../>.
+// NOTE: single-letter keywords like "r"/"l"/"x" are dangerous here — "arrow" itself
+// contains "r", and "24px"/"44px" contains "x", so they falsely match unrelated
+// files. Combined tokens ("arrowl", "arrowr", "xicon") avoid that entirely.
+const HomeIcon = icon44("home", "icon");
+const HomeIconActive = icon44Active("home", "icon");
+const CalendarIcon = icon44("calendar", "icon");
+const CalendarIconActive = icon44Active("calendar", "icon");
+const TrendIcon = icon44("trend", "icon");
+const InfoIcon = icon44("info", "icon");
+const InfoIconActive = icon44Active("info", "icon");
+const ArrowLeft = findAsset(icon24Modules, ["arrowl", "icon"], ["circle", "onclick"]);
+const ArrowRight = findAsset(icon24Modules, ["arrowr", "icon"], ["circle", "onclick"]);
+const ArrowUp = icon24("arrow", "up", "icon");
+const ArrowDown = icon24("arrow", "down", "icon");
+const CircleArrowRight = findAsset(icon44Modules, ["circle", "arrowr", "icon"], ["onclick"]);
+const CircleArrowRightActive = findAsset(icon44Modules, ["circle", "arrowr", "icon", "onclick"]);
+const UserIcon = icon24("user", "icon");
+const DataIcon = icon24("data", "icon");
+const SettingsIcon = icon24("setting", "icon");
+const XIcon = icon24("xicon");
+// symptom / condition icons — replace the emoji placeholders
+const DiabetesIcon = icon24("diabetes", "icon");
+const CardioVIcon = icon24("cardiov", "icon");
+const DepressionIcon = icon24("depression", "icon");
+const HypertensionIcon = icon24("hypertension", "icon");
+const OsteoPIcon = icon24("osteop", "icon");
+const OthersIcon = icon24("others", "icon");
+const CardioIcon = findAsset(icon24Modules, ["cardio", "icon"], ["onclick", "cardiov"]);
+const OsteoIcon = findAsset(icon24Modules, ["osteo", "icon"], ["onclick", "osteop"]);
+const AimssIcon = icon24("aimss", "icon");
+const HotflashIcon = icon24("hotflash", "icon");
+const FatigueIcon = icon24("fatigue", "icon");
+
+// illustrations — character (daily mood art) + growth-stage art (Grow folder)
+const RootinGood1 = char("good", "01") || char("good", "1");
+const RootinGood2 = char("good", "02") || char("good", "2");
+const RootinGood3 = char("good", "03") || char("good", "3");
+const RootinGood4 = char("good", "04") || char("good", "4");
+const RootinBad1 = char("bad", "01") || char("bad", "1");
+const RootinBad2 = char("bad", "02") || char("bad", "2");
+const GrowSeed = grow("seed");
+const GrowSprout = grow("sprout");
+const GrowBloom = grow("bloom");
+
+// Day 1 → Seed, Day 2 → Sprout, Day 3 → Bloom (fixed growth-stage art), Day 4+ →
+// functional: a random Good/Bad variant driven by that round's symptom mood.
+function growthImage(day, mood, variantSeed = 0) {
+  if (day === 1) return GrowSeed;
+  if (day === 2) return GrowSprout;
+  if (day === 3) return GrowBloom;
+  if (mood === "poor") return BAD_IMAGES[0];
+  if (mood === "moderate") return BAD_IMAGES[1];
+  return GOOD_IMAGES[variantSeed % GOOD_IMAGES.length];
+}
 
 // illustrations — basic info
-import BreastCancerIllustration from "./assets/illustrations/Basic_Info/Breast_cancer_illust.jpg";
-import AIIllustration from "./assets/illustrations/Basic_Info/AI_illust.jpg";
+const BreastCancerIllustration = basicInfo("breast");
+const AIIllustration = basicInfo("ai", "illust");
 
 // illustrations — symptom info
-import RootinCardiovascular from "./assets/illustrations/Symptom_Info/Rootin_Cardiovascular.png";
-import RootinBoneLoss from "./assets/illustrations/Symptom_Info/Rootin_BoneLoss.png";
-import RootinBoneFractures from "./assets/illustrations/Symptom_Info/Rootin_BoneFractures.png";
-import RootinMusclePain from "./assets/illustrations/Symptom_Info/Rootin_MusclePain.png";
-import RootinHotFlash from "./assets/illustrations/Symptom_Info/Rootin_HotFlash.png";
-import RootinFatigue from "./assets/illustrations/Symptom_Info/Rootin_Fatigue.png";
-
+const RootinCardiovascular = symptom("cardio");
+const RootinBoneLoss = symptom("bone", "loss");
+const RootinBoneFractures = symptom("bone", "fract");
+const RootinMusclePain = symptom("muscle");
+const RootinHotFlash = symptom("hotflash") || symptom("hot", "flash");
+const RootinFatigue = symptom("fatigue");
 
 // App function (Temporary prototype)
 
@@ -59,14 +128,24 @@ function useIsMobile() {
 
 function useScale() {
   const [scale, setScale] = useState(1);
+  const widthRef = useRef(typeof window !== "undefined" ? window.innerWidth : 0);
   useEffect(() => {
     const calc = () => {
       const s = Math.min(window.innerWidth / 393, window.innerHeight / 852);
       setScale(Math.min(s, 1)); // 1 이상 확대는 안 함
     };
     calc();
-    window.addEventListener("resize", calc);
-    return () => window.removeEventListener("resize", calc);
+    // Mobile keyboards shrink window.innerHeight, not width. Only recompute the
+    // scale on real layout changes (rotation/resize), so opening a text input
+    // no longer rescales the whole app up and down.
+    const handler = () => {
+      if (window.innerWidth !== widthRef.current) {
+        widthRef.current = window.innerWidth;
+        calc();
+      }
+    };
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
   }, []);
   return scale;
 }
@@ -79,12 +158,106 @@ const C = {
   red: "#8B2020",
 };
 
-const VAR_IMAGES = [RootinVar1, RootinVar2, RootinVar3, RootinVar4, RootinVar5, RootinVar6];
+// Collection rewards are the 4 "Good" variants only — the 2 "Bad" variants are
+// reserved for showing a poor/moderate mood, not for the collectible set.
+const VAR_IMAGES = [RootinGood1, RootinGood2, RootinGood3, RootinGood4];
+const GOOD_IMAGES = VAR_IMAGES;
+const BAD_IMAGES = [RootinBad1, RootinBad2];
+
+/* ─── Scoring logic (based on validated criteria) ───────────
+   Godin, ISI, CVD have clear published cutoffs → scored live.
+   Hot flash (HFRDIS) has no validated cutoff in the source paper,
+   so it is only shown as a raw 0–10 average, not a severity label. */
+
+// Godin Leisure-Time Exercise Questionnaire — Godin & Shephard 2011
+function computeGodin(ud) {
+  const stren = Number(ud.stren) || 0, mod = Number(ud.mod) || 0, mild = Number(ud.mild) || 0;
+  const score = stren * 9 + mod * 5 + mild * 3;
+  const label = score >= 24 ? "Active" : score >= 14 ? "Moderately Active" : "Insufficiently Active/Sedentary";
+  return { score, label };
+}
+
+// Insomnia Severity Index — Bastien et al. 2001 (0–28)
+function computeISI(sd) {
+  const keys = ["isi_fall", "isi_stay", "isi_early", "isi_sat", "isi_int", "isi_not", "isi_wor"];
+  const total = keys.reduce((sum, k) => sum + (Number(sd[k]) || 0), 0);
+  const answered = keys.filter(k => sd[k] !== undefined).length;
+  const level =
+    total <= 7  ? { label: "No clinically significant insomnia", color: "#4CAF50" } :
+    total <= 14 ? { label: "Subthreshold insomnia",              color: "#FF9800" } :
+    total <= 21 ? { label: "Clinical insomnia (moderate)",       color: "#F44336" } :
+                  { label: "Clinical insomnia (severe)",         color: "#B71C1C" };
+  return { total, level, answered, complete: answered === keys.length };
+}
+
+// General CVD Risk (BMI-based) — D'Agostino et al. 2008, Circulation (Framingham)
+function computeCVD(sd) {
+  const sex = sd.cvdSex, sbp = Number(sd.sbp), age = Number(sd.cvdAge), bmi = Number(sd.bmiVal);
+  const trt = sd.cvdHtn === "Yes", smoke = sd.cvdSmk === "Yes", diab = sd.cvdDiab === "Yes";
+  if (!sex || !sbp || !age || !bmi) return { valid: false };
+  const lnAge = Math.log(age), lnSbp = Math.log(sbp), lnBmi = Math.log(bmi);
+  const s = smoke ? 1 : 0, d = diab ? 1 : 0;
+  let sum, s0, mean;
+  if (sex === "Man") {
+    const sbpCoef = trt ? 1.92672 : 1.85508;
+    sum = lnAge * 3.11296 + lnSbp * sbpCoef + s * 0.70953 + lnBmi * 0.79277 + d * 0.5316;
+    s0 = 0.88431; mean = 23.9388;
+  } else {
+    const sbpCoef = trt ? 2.88267 : 2.81291;
+    sum = lnAge * 2.72107 + lnSbp * sbpCoef + s * 0.61868 + lnBmi * 0.51125 + d * 0.77763;
+    s0 = 0.94833; mean = 26.0145;
+  }
+  let risk = 1 - Math.pow(s0, Math.exp(sum - mean));
+  const pct = risk * 100;
+  const level =
+    pct < 10 ? { label: "Low 10-year risk", color: "#4CAF50" } :
+    pct < 20 ? { label: "Moderate 10-year risk", color: "#FF9800" } :
+               { label: "High 10-year risk", color: "#F44336" };
+  return { valid: true, pct: pct > 30 ? 30 : pct, capped: pct > 30, level };
+}
+
+// Hot flash-Related Daily Interference Scale — raw average only (no validated cutoff)
+function computeHotflash(sd) {
+  const items = ["Work","Social activities","Leisure activities","Sleep","Mood","Concentration","Relations with others","Sexuality","Enjoyment of life","Overall quality of life"];
+  const vals = items.map(i => Number(sd[`hf_${i}`]) || 0);
+  const avg = vals.reduce((a, b) => a + b, 0) / items.length;
+  return { avg };
+}
+
+// Joint pain (WOMAC-style grids) — raw average across all recorded grids, no published cutoff
+function computeJointPain(sd) {
+  const vals = Object.keys(sd)
+    .filter(k => k.startsWith("jp_") || k.startsWith("jpd_") || k.startsWith("jpd2_") || k === "jp_stiff1" || k === "jp_stiff2")
+    .map(k => sd[k]).filter(v => v !== undefined);
+  if (!vals.length) return { avg: 0 };
+  return { avg: vals.reduce((a, b) => a + b, 0) / vals.length };
+}
+
+// Overall mood for the plant, from whatever this round's scores are (best-effort, informational only)
+function computeMood({ isi, cvd, hotflash, joint }) {
+  let badness = 0, n = 0;
+  if (isi && isi.complete) { badness += isi.total / 28; n++; }
+  if (cvd && cvd.valid) { badness += Math.min(cvd.pct, 30) / 30; n++; }
+  if (hotflash) { badness += hotflash.avg / 10; n++; }
+  if (joint) { badness += joint.avg / 4; n++; }
+  if (!n) return "neutral";
+  const avg = badness / n;
+  return avg < 0.33 ? "good" : avg < 0.66 ? "moderate" : "poor";
+}
 
 /* ─── Base components ────────────────────────────────────── */
-const Sprout = ({ size = 120, locked = false }) => (
-  <img src={RootinCharacter} alt="Rootin character" style={{ width: size, height: size, objectFit: "contain", display: "block", opacity: locked ? 0.45 : 1, filter: locked ? "grayscale(100%)" : "none" }} />
-);
+// mood: "good" | "moderate" | "poor" | "neutral" — drives which real plant art is shown.
+// variantSeed lets callers get a bit of visual variety among the "good" images
+// instead of always showing the same one.
+const Sprout = ({ size = 120, locked = false, mood = "neutral", variantSeed = 0 }) => {
+  const src =
+    mood === "poor"     ? BAD_IMAGES[0] :
+    mood === "moderate" ? BAD_IMAGES[1] :
+                           GOOD_IMAGES[variantSeed % GOOD_IMAGES.length]; // "good" and "neutral" (no data yet) both use a Good_ variant — there's no separate neutral asset
+  return (
+    <img src={src} alt="Rootin character" style={{ width: size, height: size, objectFit: "contain", display: "block", opacity: locked ? 0.45 : 1, filter: locked ? "grayscale(100%)" : "none" }} />
+  );
+};
 
 // ✅ Logo: img → SVG 컴포넌트
 const Logo = ({ size = 90 }) => (
@@ -108,23 +281,23 @@ const ProgBar = ({ v }) => (
   </div>
 );
 
-// ✅ BackBtn: img → ArrowLeft 컴포넌트
+// ✅ BackBtn: circle_arrow_L_icon_24px (+ onclick/pressed variant)
 const BackBtn = ({ go, overlay = false }) => (
   <button onClick={go} style={{
     width: 34, height: 34, border: "none", cursor: "pointer", padding: 0,
     display: "flex", alignItems: "center", justifyContent: "center",
     ...(overlay
-      ? { position: "absolute", top: 104, left: 20, background: "rgba(255,255,255,0.85)", borderRadius: "50%", backdropFilter: "blur(4px)", zIndex: 10 }
-      : { background: "transparent", marginLeft: -8 }
+      ? { position: "absolute", top: 42, left: 20, background: "transparent", zIndex: 10 }
+      : { background: "transparent" }
     ),
   }}>
-    <ArrowLeft style={{ width: 20, height: 20, display: "block", pointerEvents: "none" }} />
+    <img src={ArrowLeft} alt="" style={{ width: 20, height: 20, display: "block", pointerEvents: "none" }} />
   </button>
 );
 
 // ✅ ChevronRight: img → ArrowRight 컴포넌트
 const ChevronRight = ({ size = 20 }) => (
-  <ArrowRight style={{ width: size, height: size, display: "block", flexShrink: 0, opacity: 0.5, pointerEvents: "none" }} />
+  <img src={ArrowRight} alt="" style={{ width: size, height: size, display: "block", flexShrink: 0, opacity: 0.5, pointerEvents: "none" }} />
 );
 
 const GhostBtn = ({ children, onClick, style = {} }) => (
@@ -137,8 +310,8 @@ const ArrowBtn = ({ onClick }) => {
   return (
     <button onMouseDown={() => setPressed(true)} onMouseUp={() => setPressed(false)} onMouseLeave={() => setPressed(false)} onClick={onClick} style={{ width: 50, height: 50, borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, padding: 0 }}>
       {pressed
-        ? <ArrowIconActive style={{ width: 44, height: 44, display: "block", pointerEvents: "none" }} />
-        : <ArrowIcon style={{ width: 44, height: 44, display: "block", pointerEvents: "none" }} />
+        ? <img src={CircleArrowRightActive} alt="" style={{ width: 44, height: 44, display: "block", pointerEvents: "none" }} />
+        : <img src={CircleArrowRight} alt="" style={{ width: 44, height: 44, display: "block", pointerEvents: "none" }} />
       }
     </button>
   );
@@ -168,7 +341,7 @@ const Dropdown = ({ label, value, onChange, opts }) => {
     <div style={{ position: "relative" }}>
       <div onClick={() => setOpen(o => !o)} style={{ background: C.cardBg, borderRadius: 14, border: `1px solid ${open ? C.green : C.border}`, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
         <span style={{ fontSize: 15, fontFamily: "'DM Sans', sans-serif", color: value ? C.dark : C.gray }}>{value || label}</span>
-        <span style={{ color: C.gray, transition: "transform .2s", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+        <span style={{ color: C.gray, display: "flex", alignItems: "center" }}>{open ? <img src={ArrowUp} alt="" style={{ width: 16, height: 16 }} /> : <img src={ArrowDown} alt="" style={{ width: 16, height: 16 }} />}</span>
       </div>
       {open && (
         <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "white", borderRadius: 14, border: `1px solid ${C.border}`, zIndex: 200, overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}>
@@ -201,10 +374,10 @@ const NavBar = ({ active, go }) => {
   return (
     <div style={{ background: C.bg, borderTop: `1px solid ${C.border}`, flexShrink: 0, height: 88, display: "flex", alignItems: "flex-start", paddingTop: 15, justifyContent: "center", gap: 0 }}>
       {tabs.map(t => {
-        const Icon = active === t.id ? icons[t.id].active : icons[t.id].default;
+        const iconSrc = active === t.id ? icons[t.id].active : icons[t.id].default;
         return (
           <button key={t.id} onClick={() => go(t.id)} style={{ width: 44, border: "none", background: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: C.dark, opacity: active === t.id ? 1 : 0.35, transition: "opacity .2s", padding: 0, marginRight: t.id !== "info" ? 32 : 0 }}>
-            <Icon style={{ width: 32, height: 32, display: "block", pointerEvents: "none" }} />
+            <img src={iconSrc} alt="" style={{ width: 32, height: 32, display: "block", pointerEvents: "none" }} />
             <span style={{ fontSize: 10, fontFamily: "'DM Sans', sans-serif", color: C.dark, fontWeight: active === t.id ? 600 : 400 }}>{t.label}</span>
           </button>
         );
@@ -221,8 +394,8 @@ const PainGrid = ({ label, value, set }) => {
       <div style={{ display: "flex", gap: 5 }}>
         {lvls.map((l, i) => (
           <div key={l} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-            <span style={{ fontSize: 8, color: C.gray, textAlign: "center", lineHeight: 1.2 }}>{l}</span>
-            <div onClick={() => set(i)} style={{ width: "100%", aspectRatio: "1", maxWidth: 44, border: value === i ? `2px solid ${C.green}` : `1.5px solid ${C.border}`, borderRadius: 7, background: value === i ? `${C.green}22` : "white", cursor: "pointer" }} />
+            <span style={{ fontSize: 10, fontWeight: 600, color: C.gray, textAlign: "center", lineHeight: 1.2 }}>{l}</span>
+            <div onClick={() => set(i)} style={{ width: "100%", aspectRatio: "1", maxWidth: 44, border: value === i ? `2px solid ${C.green}` : `1.5px solid ${C.border}`, borderRadius: 7, background: value === i ? C.green : "white", cursor: "pointer" }} />
           </div>
         ))}
       </div>
@@ -242,8 +415,9 @@ const SliderRow = ({ label, value, set }) => (
 
 const ArticlePage = ({ title, body, back, heroImg, isPhoto = false }) => (
   <Scr scroll>
+    <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
     <div style={{ position: "relative", flexShrink: 0 }}>
-      <div style={{ height: 300, background: "white", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+      <div style={{ height: 359, background: "white", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
         {heroImg && (
           <img src={heroImg} alt={title} style={{ width: "100%", height: "100%", objectFit: isPhoto ? "cover" : "contain", display: "block" }} />
         )}
@@ -259,20 +433,22 @@ const ArticlePage = ({ title, body, back, heroImg, isPhoto = false }) => (
   </Scr>
 );
 
-const GridMenu = ({ title, subtitle, items, back }) => (
+const GridMenu = ({ title, subtitle, items, back, cardW, cardH, topGap, gridGap = 12 }) => (
   <Scr scroll>
-    <div style={{ padding: "104px 20px 0", flexShrink: 0 }}>
+    <div style={{ padding: "104px 20px 0", flexShrink: 0, position: "sticky", top: 0, zIndex: 5, background: C.bg }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: subtitle ? 6 : 16 }}>
         <BackBtn go={back} />
         <h2 style={{ fontSize: 22, fontWeight: 700 }}>{title}</h2>
       </div>
       {subtitle && <p style={{ fontSize: 13, color: C.dark, padding: "0 0 14px", lineHeight: 1.65 }}>{subtitle}</p>}
     </div>
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, padding: "0 20px 60px" }}>
+    <div style={{ display: "grid", gridTemplateColumns: cardW ? `repeat(2, ${cardW}px)` : "1fr 1fr", justifyContent: cardW ? "center" : "initial", gap: gridGap, padding: `${topGap ?? 0}px 20px 60px` }}>
       {items.map((item) => (
-        <div key={item.label} onClick={item.go} style={{ background: "white", borderRadius: 16, padding: "22px 12px 18px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, border: `1.5px solid ${C.brown}33`, cursor: "pointer" }}>
-          {item.img
-            ? <img src={item.img} alt={item.label} style={{ width: 64, height: 64, objectFit: "contain" }} />
+        <div key={item.label} onClick={item.go} style={{ background: "white", borderRadius: 16, padding: "22px 12px 18px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, border: `1.5px solid ${C.brown}33`, cursor: "pointer", ...(cardW ? { width: cardW, height: cardH, boxSizing: "border-box" } : {}) }}>
+          {item.Icon
+            ? <img src={item.Icon} alt={item.label} style={{ width: 32, height: 32, display: "block" }} />
+            : item.img
+            ? <img src={item.img} alt={item.label} style={{ width: 72, height: 72, objectFit: "contain" }} />
             : <div style={{ width: 44, height: 44, background: C.lightGray, borderRadius: 8 }} />
           }
           <p style={{ fontSize: 13, fontWeight: 600, textAlign: "center", color: C.dark }}>{item.label}</p>
@@ -311,6 +487,12 @@ function RootinApp() {
   const [reminderText, setReminderText] = useState("Take your Anastrozole");
   const [selectedChar, setSelectedChar] = useState(0);
 
+  // ── Usability-test simulation state (in-memory only, nothing persisted) ──
+  const [round, setRound] = useState(0);            // number of symptom surveys completed
+  const [growthStage, setGrowthStage] = useState("seed"); // "seed" | "sprout"
+  const [collection, setCollection] = useState([]); // indices into VAR_IMAGES unlocked from round 3+
+  const [history, setHistory] = useState([]);       // one record per completed symptom survey
+
   const go = (s) => { setHist(h => [...h, scr]); setScr(s); };
   const back = () => { if (hist.length) { setScr(hist[hist.length - 1]); setHist(h => h.slice(0, -1)); } };
   const navTab = (t) => { setTab(t); setHist([]); setScr({ home: "home", calendar: "calendar", trends: "trends", info: "helpfulInfo" }[t]); };
@@ -318,10 +500,46 @@ function RootinApp() {
   const su = (k, v) => setSd(d => ({ ...d, [k]: v }));
   const tog = (arr, value) => arr?.includes(value) ? arr.filter(x => x !== value) : [...(arr || []), value];
 
+  // Live scores for whatever is currently in `sd` (this round, in progress or just finished)
+  const godinResult = computeGodin(ud);
+  const isiResult = computeISI(sd);
+  const cvdResult = computeCVD(sd);
+  const hotflashResult = computeHotflash(sd);
+  const jointResult = computeJointPain(sd);
+  const currentMood = computeMood({ isi: isiResult, cvd: cvdResult, hotflash: hotflashResult, joint: jointResult });
+  const lastRecord = history[history.length - 1];
+  const latestMood = lastRecord ? lastRecord.mood : "neutral";
+
+  // Finish one symptom-survey round: snapshot scores into history, advance growth, reset inputs.
+  const finishSymptomRound = () => {
+    const record = {
+      day: dayCount,
+      isi: isiResult,
+      cvd: cvdResult,
+      hotflash: hotflashResult,
+      joint: jointResult,
+      mood: currentMood,
+    };
+    setHistory(h => [...h, record]);
+    const nextRound = round + 1;
+    setRound(nextRound);
+    if (nextRound === 2) setGrowthStage("sprout");
+    if (nextRound >= 3) {
+      setCollection(c => {
+        const remaining = VAR_IMAGES.map((_, i) => i).filter(i => !c.includes(i));
+        if (!remaining.length) return c;
+        const pick = remaining[Math.floor(Math.random() * remaining.length)];
+        return [...c, pick];
+      });
+    }
+    setSd({}); // reset the questionnaire inputs — reopening the survey always starts blank
+    return { record, nextRound };
+  };
+
   /* ─── SPLASH ──────────────────────────────────────── */
   if (scr === "splash") return (
     <Scr style={{ alignItems: "center", justifyContent: "center" }}>
-      <Logo size={120} />
+      <Logo size={180} />
       <p style={{ fontSize: 28, fontWeight: 700, marginTop: 20, color: C.dark }}>rootin</p>
       <p style={{ fontSize: 14, color: C.gray, marginTop: 6 }}>Grow with your routine</p>
       <div style={{ position: "absolute", bottom: 48, width: "80%" }}>
@@ -339,8 +557,10 @@ function RootinApp() {
     ];
     return (
       <Scr>
-        <div style={{ flex: "0 0 46%", display: "flex", alignItems: "center", justifyContent: "center" }}><Sprout size={150} /></div>
-        <div style={{ flex: 1, padding: "24px 28px 40px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+        <div style={{ flexShrink: 0, paddingTop: 84 }}>
+          <div style={{ height: 340, display: "flex", alignItems: "center", justifyContent: "center" }}><Sprout size={230} /></div>
+        </div>
+        <div style={{ flex: 1, padding: "40px 28px 40px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
           <div>
             <div style={{ display: "flex", gap: 6, marginBottom: 28 }}>
               {slides.map((_, i) => <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= slide ? C.dark : C.lightGray, transition: "background .3s" }} />)}
@@ -357,10 +577,10 @@ function RootinApp() {
   /* ─── DATA CONSENT ────────────────────────────────── */
   if (scr === "dataConsent") return (
     <Scr scroll>
-      <div style={{ padding: "104px 24px 0" }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24 }}>Personal Data Consent</h2>
-        <div style={{ borderRadius: 18, height: 140, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
-          <Logo size={80} />
+      <div style={{ padding: "198px 24px 0" }}>
+        <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 88, textAlign: "center" }}>Personal Data Consent</h2>
+        <div style={{ height: 88, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 88 }}>
+          <Logo size={88} />
         </div>
         <p style={{ fontSize: 14, lineHeight: 1.75, textAlign: "center", marginBottom: 16 }}>Rootin collects your health information to help you track symptoms and improve your care experience. Your data is securely stored and never sold.</p>
         <p style={{ fontSize: 14, lineHeight: 1.75, textAlign: "center", marginBottom: 28 }}>By tapping "I Agree," you consent to the collection and use of your information.</p>
@@ -381,7 +601,7 @@ function RootinApp() {
   if (scr === "surveyIntro") return (
     <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: 60 }}>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px" }}>
-        <Sprout size={170} />
+        <img src={GrowBloom} alt="Rootin" style={{ width: 140, height: 140, objectFit: "contain" }} />
         <h2 style={{ fontSize: 24, fontWeight: 700, marginTop: 28, marginBottom: 12, textAlign: "center" }}>Hi, I'm Rootin.</h2>
         <p style={{ fontSize: 15, lineHeight: 1.75, textAlign: "center", marginBottom: 10 }}>Let's get to know you a little better. I'm here to support you and your daily routine.</p>
         <p style={{ fontSize: 13, color: C.gray }}>Your data is safe and stays with you.</p>
@@ -395,17 +615,24 @@ function RootinApp() {
   /* ─── USER SURVEY ─────────────────────────────────── */
   if (scr === "uSurvey") {
     const total = 13;
-    const next = () => uStep < total ? setUStep(s => s + 1) : go("symSurveyIntro");
-    const prev = () => uStep > 1 ? setUStep(s => s - 1) : back();
+    const next = () => {
+      if (uStep === 10 && ud.alcohol !== "Yes") { setUStep(12); return; } // skip the frequency-only step unless they said Yes
+      if (uStep < total) { setUStep(s => s + 1); return; }
+      go("symSurveyIntro");
+    };
+    const prev = () => {
+      if (uStep === 12 && ud.alcohol !== "Yes") { setUStep(10); return; } // mirror the skip when going back
+      uStep > 1 ? setUStep(s => s - 1) : back();
+    };
     const Hdr = () => (
-      <div style={{ padding: "104px 20px 8px", flexShrink: 0 }}>
+      <div style={{ padding: "104px 20px 8px", flexShrink: 0, position: "sticky", top: 0, zIndex: 5, background: C.bg }}>
         <ProgBar v={uStep / total} />
         <BackBtn go={prev} />
       </div>
     );
 
     if (uStep === 1) return (
-      <Scr scroll><Hdr />
+      <Scr scroll key={uStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Tell us your information</h2>
           <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>Tell us your age</p>
@@ -423,7 +650,7 @@ function RootinApp() {
     );
 
     if (uStep === 2) return (
-      <Scr scroll><Hdr />
+      <Scr scroll key={uStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Tell us your information</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -438,7 +665,7 @@ function RootinApp() {
     );
 
     if (uStep === 3) return (
-      <Scr scroll><Hdr />
+      <Scr scroll key={uStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Tell us your information</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
@@ -455,7 +682,7 @@ function RootinApp() {
     );
 
     if (uStep === 4) return (
-      <Scr scroll><Hdr />
+      <Scr scroll key={uStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Age at breast cancer diagnosis</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -468,7 +695,7 @@ function RootinApp() {
     );
 
     if (uStep === 5) return (
-      <Scr scroll><Hdr />
+      <Scr scroll key={uStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>What kind of AI do you use for your medication?</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -480,7 +707,7 @@ function RootinApp() {
     );
 
     if (uStep === 6) return (
-      <Scr scroll><Hdr />
+      <Scr scroll key={uStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>When have you started taking AI for treatment?</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -493,17 +720,24 @@ function RootinApp() {
     );
 
     if (uStep === 7) {
-      const conds = [["Diabetes","💉"],["Cardiovascular Disease","❤️"],["Depression","🧠"],["Hypertension","🩺"],["Osteoporosis","🦴"],["Others","➕"]];
+      const conds = [
+        ["Diabetes", DiabetesIcon],
+        ["Cardiovascular Disease", CardioIcon],
+        ["Depression", DepressionIcon],
+        ["Hypertension", HypertensionIcon],
+        ["Osteoporosis", OsteoIcon],
+        ["Others", OthersIcon],
+      ];
       return (
-        <Scr scroll><Hdr />
+        <Scr scroll key={uStep}><Hdr />
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Select your comorbid conditions</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              {conds.map(([c, icon]) => {
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 173px)", justifyContent: "center", gap: 12 }}>
+              {conds.map(([c, iconSrc]) => {
                 const on = (ud.comorbid || []).includes(c);
                 return (
-                  <div key={c} onClick={() => uu("comorbid", tog(ud.comorbid, c))} style={{ background: "white", borderRadius: 16, padding: "20px 10px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, border: on ? `2px solid ${C.brown}` : `1px solid ${C.border}`, cursor: "pointer" }}>
-                    <span style={{ fontSize: 30 }}>{icon}</span>
+                  <div key={c} onClick={() => uu("comorbid", tog(ud.comorbid, c))} style={{ width: 173, height: 133, boxSizing: "border-box", background: "white", borderRadius: 16, padding: "20px 10px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, border: on ? `2px solid ${C.brown}` : `1px solid ${C.border}`, cursor: "pointer" }}>
+                    <img src={iconSrc} alt={c} style={{ width: 30, height: 30, display: "block" }} />
                     <span style={{ fontSize: 13, fontWeight: 600, textAlign: "center" }}>{c}</span>
                   </div>
                 );
@@ -516,11 +750,11 @@ function RootinApp() {
     }
 
     if (uStep === 8) return (
-      <Scr scroll><Hdr />
+      <Scr scroll key={uStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Current general health compared to one year ago</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {["Much better than a year ago","Somewhat better than a year ago","About the same","Somewhat worse than a year ago","Much worse than a year ago","Decline to answer"].map(o => <Radio key={o} label={o} on={ud.health === o} set={() => uu("health", o)} />)}
+            {["Poor","Fair","Good","Very good","Excellent","Decline to answer"].map(o => <Radio key={o} label={o} on={ud.health === o} set={() => uu("health", o)} />)}
           </div>
         </div>
         <div style={{ padding: "8px 20px 32px", display: "flex", justifyContent: "flex-end" }}><ArrowBtn onClick={next} /></div>
@@ -528,7 +762,7 @@ function RootinApp() {
     );
 
     if (uStep === 9) return (
-      <Scr scroll><Hdr />
+      <Scr scroll key={uStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Current smoker?</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -540,7 +774,7 @@ function RootinApp() {
     );
 
     if (uStep === 10) return (
-      <Scr scroll><Hdr />
+      <Scr scroll key={uStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Drank alcohol at least once a month for 6 months or more</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -552,7 +786,7 @@ function RootinApp() {
     );
 
     if (uStep === 11) return (
-      <Scr scroll><Hdr />
+      <Scr scroll key={uStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>If yes, please indicate your frequency.</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -564,7 +798,7 @@ function RootinApp() {
     );
 
     if (uStep === 12) return (
-      <Scr scroll><Hdr />
+      <Scr scroll key={uStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Indicate your BMI</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -582,7 +816,7 @@ function RootinApp() {
         { key: "mild",  label: "MILD/LIGHT EXERCISE (MINIMAL EFFORT)",     desc: "e.g., yoga, archery, fishing from river bank, bowling, horseshoes, golf, snow–mobiling, easy walking" },
       ];
       return (
-        <Scr scroll><Hdr />
+        <Scr scroll key={uStep}><Hdr />
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Godin Leisure – Time Exercise</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 20 }}>Enter number of times per week</p>
@@ -612,7 +846,7 @@ function RootinApp() {
   if (scr === "symSurveyIntro") return (
     <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: 60 }}>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px" }}>
-        <Sprout size={170} />
+        <img src={GrowBloom} alt="Rootin" style={{ width: 140, height: 140, objectFit: "contain" }} />
         <h2 style={{ fontSize: 22, fontWeight: 700, marginTop: 28, marginBottom: 12, textAlign: "center" }}>Let's start your symptom survey.</h2>
         <p style={{ fontSize: 15, lineHeight: 1.7, textAlign: "center", marginBottom: 8 }}>I'm here to support you.</p>
         <p style={{ fontSize: 13, color: C.gray }}>Your data is safe and stays with you.</p>
@@ -625,17 +859,23 @@ function RootinApp() {
 
   /* ─── SYMPTOMS SURVEY ─────────────────────────────── */
   if (scr === "sSurvey") {
-    const total = 8;
+    const total = 9; // Joint Pain (1-6) → ISI page 1 (7) → ISI page 2 (8) → CVD (9)
     const fromHome = hist.includes("home");
     const next = () => {
-      if (sStep < total) { setSStep(s => s + 1); }
-      else if (isSetup) { go("charName"); }
-      else if (fromHome) { setSStep(1); setHist([]); setScr("home"); }
-      else { setDayCount(d => d + 1); setSStep(1); go("symDone"); }
+      if (sStep < total) { setSStep(s => s + 1); return; }
+      // Last step reached: snapshot this round's scores, advance growth stage.
+      const { nextRound } = finishSymptomRound();
+      if (isSetup) { go("charName"); return; } // very first run → plant the seed
+      setDayCount(d => d + 1);
+      setSStep(1);
+      if (nextRound === 2) { go("growthSprout"); return; }       // 2nd survey → sprout
+      if (nextRound >= 3) { go("growthCollection"); return; }    // 3rd+ → collection grows
+      if (fromHome) { setHist([]); setScr("home"); return; }
+      go("symDone");
     };
     const prev = () => sStep > 1 ? setSStep(s => s - 1) : back();
     const Hdr = () => (
-      <div style={{ padding: "104px 20px 8px", flexShrink: 0 }}>
+      <div style={{ padding: "104px 20px 8px", flexShrink: 0, position: "sticky", top: 0, zIndex: 5, background: C.bg }}>
         <ProgBar v={sStep / total} />
         <BackBtn go={prev} />
       </div>
@@ -644,7 +884,7 @@ function RootinApp() {
     if (sStep === 1) {
       const opts = ["Diabetes","Cardiovascular Disease","Depression","Hypertension","Osteoporosis"];
       return (
-        <Scr scroll><Hdr />
+        <Scr scroll key={sStep}><Hdr />
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>What symptoms would you like to track?</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 20, lineHeight: 1.6 }}>Select the symptoms you experience most frequently, you can always add more later.</p>
@@ -660,7 +900,7 @@ function RootinApp() {
     if (sStep === 2) {
       const items = ["Work","Social activities","Leisure activities","Sleep","Mood","Concentration","Relations with others","Sexuality","Enjoyment of life","Overall quality of life"];
       return (
-        <Scr scroll><Hdr />
+        <Scr scroll key={sStep}><Hdr />
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6, lineHeight: 1.35 }}>Hot flash–Related Daily Interference Scale</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 16, lineHeight: 1.6 }}>Choose a level from "Do not interfere" to "Completely interfere."</p>
@@ -674,7 +914,7 @@ function RootinApp() {
     if (sStep === 3) {
       const items = ["Walking on a flat surface","Going up and down stairs","At night while in bed, pain disturbs your sleep","Sitting or lying","Standing upright"];
       return (
-        <Scr scroll><Hdr />
+        <Scr scroll key={sStep}><Hdr />
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Joint Pain</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 6, lineHeight: 1.6 }}>Think about the pain you felt in your hip and knee during the last 48 hours.</p>
@@ -687,7 +927,7 @@ function RootinApp() {
     }
 
     if (sStep === 4) return (
-      <Scr scroll><Hdr />
+      <Scr scroll key={sStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Joint Pain</h2>
           <p style={{ fontSize: 13, color: C.gray, marginBottom: 18, lineHeight: 1.65 }}>Think about the stiffness (not pain) you have in your hip and knee during the last 48 hours.</p>
@@ -701,7 +941,7 @@ function RootinApp() {
     if (sStep === 5) {
       const items = ["Descending stairs","Ascending stairs","Rising from sitting","Standing","Bending to the floor","Walking on flat surfaces","Getting in and out of a car, or on or off a bus"];
       return (
-        <Scr scroll><Hdr />
+        <Scr scroll key={sStep}><Hdr />
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Joint Pain</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 6, lineHeight: 1.65 }}>Think about the difficulty due to your hip and knee during the last 48 hours.</p>
@@ -716,7 +956,7 @@ function RootinApp() {
     if (sStep === 6) {
       const items = ["Going shopping","Putting on your socks or stockings","Rising from the bed","Taking off your socks or stockings","Lying in bed","Getting in or out of the bath","Sitting","Getting on or off the toilet","Performance heavy domestic duties","Performing light domestic duties"];
       return (
-        <Scr scroll><Hdr />
+        <Scr scroll key={sStep}><Hdr />
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Joint Pain</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 6, lineHeight: 1.65 }}>Think about the difficulty due to your hip and knee during the last 48 hours.</p>
@@ -728,52 +968,85 @@ function RootinApp() {
       );
     }
 
+    // ISI page 1 — severity items + satisfaction. Margins follow the reference
+    // screenshot exactly: 20,32,16,32,16,20,16,20,16,20,16,20,16,32
     if (sStep === 7) {
-      const isiItems = [
-        { k: "isi_fall",  label: "Difficulty falling asleep" },
-        { k: "isi_stay",  label: "Difficulty staying asleep" },
-        { k: "isi_early", label: "Problem waking up too early" },
-        { k: "isi_sat",   label: "Sleep satisfaction" },
-        { k: "isi_int",   label: "Interference with daily functioning" },
-        { k: "isi_not",   label: "Noticeability to others" },
-        { k: "isi_wor",   label: "Worry/distress about sleep" },
+      const severityItems = [
+        { k: "isi_fall",  label: "Difficulty falling asleep",     lvls: ["None","Mild","Moderate","Severe","Very"] },
+        { k: "isi_stay",  label: "Difficulty staying asleep",     lvls: ["None","Mild","Moderate","Severe","Very"] },
+        { k: "isi_early", label: "Problem waking up too early",   lvls: ["None","Mild","Moderate","Severe","Very"] },
+        { k: "isi_sit",   label: "Sitting or lying",              lvls: ["None","Mild","Moderate","Severe","Extreme"] },
+        { k: "isi_stand", label: "Standing upright",              lvls: ["None","Mild","Moderate","Severe","Extreme"] },
       ];
-      const isiTotal = isiItems.reduce((sum, it) => sum + (sd[it.k] || 0), 0);
-      const isiLevel =
-        isiTotal <= 7  ? { label: "No clinically significant insomnia", color: "#4CAF50" } :
-        isiTotal <= 14 ? { label: "Subthreshold insomnia",              color: "#FF9800" } :
-        isiTotal <= 21 ? { label: "Clinical insomnia (moderate)",       color: "#F44336" } :
-                         { label: "Clinical insomnia (severe)",         color: "#B71C1C" };
-      const lvls = ["None","Mild","Moderate","Severe","Extreme"];
       return (
-        <Scr scroll><Hdr />
-          <div style={{ padding: "0 20px 24px" }}>
-            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Insomnia Severity Index</h2>
-            <p style={{ fontSize: 13, color: C.gray, marginBottom: 18, lineHeight: 1.6 }}>Please rate the SEVERITY of your insomnia problem(s) in the last 2 weeks.</p>
-            {isiItems.map(({ k, label }) => (
-              <div key={k} style={{ marginBottom: 18 }}>
-                <p style={{ fontSize: 13, color: C.dark, marginBottom: 8, lineHeight: 1.5 }}>{label}</p>
+        <Scr scroll key={sStep}><Hdr />
+          <div style={{ padding: "0 20px 20px" }}>
+            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Insomnia Severity Index</h2>
+            <p style={{ fontSize: 13, color: C.gray, marginBottom: 32, lineHeight: 1.6 }}>Please rate the current (i.e., last 2 weeks) SEVERITY of your insomnia problem(s).</p>
+            {severityItems.map(({ k, label, lvls }, idx) => (
+              <div key={k} style={{ marginBottom: idx === 0 ? 32 : 20 }}>
+                <p style={{ fontSize: 13, color: C.dark, marginBottom: 16, lineHeight: 1.5 }}>{label}</p>
                 <div style={{ display: "flex", gap: 5 }}>
                   {lvls.map((l, i) => (
                     <div key={l} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                      <span style={{ fontSize: 8, color: C.gray, textAlign: "center", lineHeight: 1.2 }}>{l}</span>
-                      <div onClick={() => su(k, i)} style={{ width: "100%", aspectRatio: "1", maxWidth: 44, border: sd[k] === i ? `2px solid ${C.green}` : `1.5px solid ${C.border}`, borderRadius: 7, background: sd[k] === i ? `${C.green}22` : "white", cursor: "pointer" }} />
+                      <span style={{ fontSize: 10, fontWeight: 600, color: C.gray, textAlign: "center", lineHeight: 1.2 }}>{l}</span>
+                      <div onClick={() => su(k, i)} style={{ width: "100%", aspectRatio: "1", maxWidth: 44, border: sd[k] === i ? `2px solid ${C.green}` : `1.5px solid ${C.border}`, borderRadius: 7, background: sd[k] === i ? C.green : "white", cursor: "pointer" }} />
                     </div>
                   ))}
                 </div>
               </div>
             ))}
-            <div style={{ background: "white", borderRadius: 16, padding: 16, border: `1.5px solid ${C.border}`, marginTop: 8 }}>
+            <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>How SATISFIED/dissatisfied are you with your current sleep pattern?</p>
+            <div style={{ background: "white", borderRadius: 14, padding: 14, marginBottom: 32 }}>
+              <input type="range" min={0} max={4} value={sd.isi_sat ?? 2} onChange={e => su("isi_sat", +e.target.value)} style={{ width: "100%", accentColor: C.green, cursor: "pointer" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: C.gray, marginTop: 4 }}>
+                <span>Very satisfied</span><span>Very dissatisfied</span>
+              </div>
+            </div>
+          </div>
+          <div style={{ padding: "0 20px 40px" }}><Button color={C.green} onClick={next}>Next</Button></div>
+        </Scr>
+      );
+    }
+
+    // ISI page 2 — interference / noticeability / worry + scoring guideline (ISI total shown live)
+    if (sStep === 8) {
+      const impactItems = [
+        { k: "isi_int", label: "To what extent do you consider your sleep problem to INTERFERE with your daily functioning (e.g. daytime fatigue, ability to function at work/daily chores, concentration, memory, mood, etc.)." },
+        { k: "isi_not", label: "How NOTICEABLE to others do you think your sleeping problem is in terms of impairing the quality of your life?" },
+        { k: "isi_wor", label: "How WORRIED/distressed are you about your current sleep problem?" },
+      ];
+      const lvls = ["Not at all","A Little","Somewhat","Much","Very Much"];
+      const isi = isiResult;
+      return (
+        <Scr scroll key={sStep}><Hdr />
+          <div style={{ padding: "0 20px 32px" }}>
+            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Insomnia Severity Index</h2>
+            {impactItems.map(({ k, label }, idx) => (
+              <div key={k} style={{ marginBottom: 32 }}>
+                <p style={{ fontSize: 13, color: C.dark, marginBottom: 16, lineHeight: 1.5 }}>{label}</p>
+                <div style={{ display: "flex", gap: 5 }}>
+                  {lvls.map((l, i) => (
+                    <div key={l} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: C.gray, textAlign: "center", lineHeight: 1.2 }}>{l}</span>
+                      <div onClick={() => su(k, i)} style={{ width: "100%", aspectRatio: "1", maxWidth: 44, border: sd[k] === i ? `2px solid ${C.green}` : `1.5px solid ${C.border}`, borderRadius: 7, background: sd[k] === i ? C.green : "white", cursor: "pointer" }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {/* ISI has a validated 0–28 cutoff, so the result is surfaced right away */}
+            <div style={{ background: "white", borderRadius: 16, padding: 16, border: `1.5px solid ${C.border}` }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                 <p style={{ fontSize: 14, fontWeight: 600 }}>ISI Total Score</p>
-                <div style={{ background: isiLevel.color, borderRadius: 100, padding: "4px 14px" }}>
-                  <span style={{ color: "white", fontSize: 15, fontWeight: 700 }}>{isiTotal} / 28</span>
+                <div style={{ background: isi.level.color, borderRadius: 100, padding: "4px 14px" }}>
+                  <span style={{ color: "white", fontSize: 15, fontWeight: 700 }}>{isi.total} / 28</span>
                 </div>
               </div>
               <div style={{ background: C.lightGray, borderRadius: 8, height: 8, overflow: "hidden", marginBottom: 10 }}>
-                <div style={{ height: "100%", width: `${(isiTotal / 28) * 100}%`, background: isiLevel.color, borderRadius: 8, transition: "width .4s" }} />
+                <div style={{ height: "100%", width: `${(isi.total / 28) * 100}%`, background: isi.level.color, borderRadius: 8, transition: "width .4s" }} />
               </div>
-              <p style={{ fontSize: 13, color: isiLevel.color, fontWeight: 600 }}>{isiLevel.label}</p>
+              <p style={{ fontSize: 13, color: isi.level.color, fontWeight: 600 }}>{isi.level.label}</p>
               <p style={{ fontSize: 11, color: C.gray, marginTop: 6, lineHeight: 1.6 }}>0–7: No significant insomnia · 8–14: Subthreshold · 15–21: Moderate · 22–28: Severe</p>
             </div>
           </div>
@@ -782,8 +1055,9 @@ function RootinApp() {
       );
     }
 
-    if (sStep === 8) return (
-      <Scr scroll><Hdr />
+    // CVD Risk Prediction (General CVD, BMI-based, D'Agostino 2008) — validated cutoff, shown live
+    if (sStep === 9) return (
+      <Scr scroll key={sStep}><Hdr />
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>CVD Risk Prediction</h2>
           <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>Sex</p>
@@ -791,9 +1065,9 @@ function RootinApp() {
             {["Man","Woman"].map(s => <Pill key={s} label={s} on={sd.cvdSex === s} click={() => su("cvdSex", s)} />)}
           </div>
           <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Systolic Blood Pressure</p>
-          <div style={{ marginBottom: 16 }}><TextInput placeholder="mmHg" value={sd.sbp || ""} onChange={v => su("sbp", v)} /></div>
+          <div style={{ marginBottom: 16 }}><TextInput placeholder="mmHg" value={sd.sbp || ""} onChange={v => su("sbp", v)} inputMode="numeric" numericOnly /></div>
           <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Age</p>
-          <div style={{ marginBottom: 20 }}><TextInput placeholder="Years" value={sd.cvdAge || ""} onChange={v => su("cvdAge", v)} /></div>
+          <div style={{ marginBottom: 20 }}><TextInput placeholder="Years" value={sd.cvdAge || ""} onChange={v => su("cvdAge", v)} inputMode="numeric" numericOnly /></div>
           {[{label:"Treatment for Hypertension",key:"cvdHtn"},{label:"Smoking",key:"cvdSmk"},{label:"Diabetes",key:"cvdDiab"}].map(f => (
             <div key={f.key} style={{ marginBottom: 16 }}>
               <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{f.label}</p>
@@ -803,7 +1077,19 @@ function RootinApp() {
             </div>
           ))}
           <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Body Mass Index</p>
-          <TextInput placeholder="kg/m²" value={sd.bmiVal || ""} onChange={v => su("bmiVal", v)} />
+          <div style={{ marginBottom: 20 }}><TextInput placeholder="kg/m²" value={sd.bmiVal || ""} onChange={v => su("bmiVal", v)} inputMode="numeric" numericOnly /></div>
+          {cvdResult.valid && (
+            <div style={{ background: "white", borderRadius: 16, padding: 16, border: `1.5px solid ${C.border}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <p style={{ fontSize: 14, fontWeight: 600 }}>10-Year CVD Risk</p>
+                <div style={{ background: cvdResult.level.color, borderRadius: 100, padding: "4px 14px" }}>
+                  <span style={{ color: "white", fontSize: 15, fontWeight: 700 }}>{cvdResult.capped ? ">30" : cvdResult.pct.toFixed(1)}%</span>
+                </div>
+              </div>
+              <p style={{ fontSize: 13, color: cvdResult.level.color, fontWeight: 600 }}>{cvdResult.level.label}</p>
+              <p style={{ fontSize: 11, color: C.gray, marginTop: 6, lineHeight: 1.6 }}>Framingham General CVD (BMI-based) equation · &lt;10%: Low · 10–20%: Moderate · ≥20%: High</p>
+            </div>
+          )}
         </div>
         <div style={{ padding: "0 20px 40px" }}><Button color={C.green} onClick={next}>Next</Button></div>
       </Scr>
@@ -818,7 +1104,7 @@ function RootinApp() {
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 28px" }}>
           <h2 style={{ fontSize: 26, fontWeight: 700, textAlign: "center", marginBottom: 6 }}>You planted a seed!</h2>
           <p style={{ fontSize: 14, color: C.gray, marginBottom: 28, textAlign: "center" }}>Name your little sprout!</p>
-          <Sprout size={160} />
+          <img src={GrowSeed} alt="Seed planted" style={{ width: 160, height: 160, objectFit: "contain" }} />
           <div style={{ width: "100%", marginTop: 28, marginBottom: 14 }}><TextInput placeholder="Name" value={inp} onChange={setInp} /></div>
           <div style={{ display: "flex", gap: 12, width: "100%" }}>
             <GhostBtn style={{ flex: 1 }} onClick={() => { const n = (ni + 1) % names.length; setNi(n); setInp(names[n]); }}>Shuffle</GhostBtn>
@@ -837,7 +1123,7 @@ function RootinApp() {
     <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: 60 }}>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px" }}>
         <h2 style={{ fontSize: 22, fontWeight: 700, textAlign: "center", marginBottom: 32, lineHeight: 1.4 }}>Let Rootin take root in your routine.</h2>
-        <Sprout size={170} />
+        <img src={GrowSeed} alt="Seed planted" style={{ width: 170, height: 170, objectFit: "contain" }} />
         <p style={{ fontSize: 14, color: C.gray, marginTop: 28, textAlign: "center" }}>The more you track, the stronger it grows with you.</p>
       </div>
       <div style={{ padding: "16px 24px 44px", width: "100%" }}>
@@ -846,6 +1132,40 @@ function RootinApp() {
     </Scr>
   );
 
+  /* ─── GROWTH: SPROUT (2nd completed survey) ───────── */
+  if (scr === "growthSprout") return (
+    <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: 60 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px" }}>
+        <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: "center", marginBottom: 6 }}>{charName} sprouted!</h2>
+        <p style={{ fontSize: 14, color: C.gray, marginBottom: 28, textAlign: "center" }}>Two surveys in — your routine is taking root.</p>
+        <img src={GrowSprout} alt="Sprouted" style={{ width: 170, height: 170, objectFit: "contain" }} />
+      </div>
+      <div style={{ padding: "16px 24px 44px", width: "100%" }}>
+        <Button color={C.green} onClick={() => { setSStep(1); setHist([]); setScr("home"); }}>Next</Button>
+      </div>
+    </Scr>
+  );
+
+  /* ─── GROWTH: COLLECTION (3rd+ completed survey) ──── */
+  if (scr === "growthCollection") {
+    const justAdded = collection[collection.length - 1];
+    const img = justAdded !== undefined ? VAR_IMAGES[justAdded] : RootinGood1;
+    return (
+      <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: 60 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px" }}>
+          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: "center", marginBottom: 6 }}>A new Rootin joined your collection!</h2>
+          <p style={{ fontSize: 14, color: C.gray, marginBottom: 28, textAlign: "center" }}>Keep checking in to collect them all.</p>
+          <img src={img} alt="New Rootin" style={{ width: 170, height: 170, objectFit: "contain" }} />
+          <p style={{ fontSize: 13, color: C.gray, marginTop: 16 }}>{collection.length} of {VAR_IMAGES.length} collected</p>
+        </div>
+        <div style={{ padding: "16px 24px 44px", width: "100%", display: "flex", gap: 12 }}>
+          <GhostBtn style={{ flex: 1 }} onClick={() => { setSStep(1); setHist([]); go("rootinColl"); }}>View Collection</GhostBtn>
+          <Button style={{ flex: 1 }} color={C.green} onClick={() => { setSStep(1); setHist([]); setScr("home"); }}>Next</Button>
+        </div>
+      </Scr>
+    );
+  }
+
   /* ─── HOME ────────────────────────────────────────── */
   if (scr === "home") return (
     <ScrWithNav activeTab={tab} navGo={navTab}>
@@ -853,43 +1173,50 @@ function RootinApp() {
         <div style={{ display: "flex", gap: 16 }}>
           {/* ✅ UserIcon, DataIcon: img → SVG 컴포넌트 */}
           <button onClick={() => go("myPage")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}>
-            <UserIcon style={{ width: 24, height: 24, display: "block", pointerEvents: "none"}} />
+            <img src={UserIcon} alt="" style={{ width: 24, height: 24, display: "block", pointerEvents: "none"}} />
           </button>
           <button onClick={() => go("moments")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}>
-            <DataIcon style={{ width: 24, height: 24, display: "block", pointerEvents: "none" }} />
+            <img src={DataIcon} alt="" style={{ width: 24, height: 24, display: "block", pointerEvents: "none" }} />
           </button>
         </div>
         {/* ✅ SettingsIcon: img → SVG 컴포넌트 */}
         <button onClick={() => go("settings")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}>
-          <SettingsIcon style={{ width: 24, height: 24, display: "block", pointerEvents: "none" }} />
+          <img src={SettingsIcon} alt="" style={{ width: 24, height: 24, display: "block", pointerEvents: "none" }} />
         </button>
       </div>
       <div style={{ padding: "0 20px 14px" }}>
         <p style={{ fontSize: 13, color: C.gray }}>Today, 28 August</p>
         <h2 style={{ fontSize: 26, fontWeight: 700, marginTop: 2 }}>Health Check-in</h2>
       </div>
-      <div style={{ margin: "0 20px 16px", background: "white", borderRadius: 22, height: 210, display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${C.border}` }}>
-        <Sprout size={155} />
+      <div style={{ margin: "0 20px 16px", background: "white", borderRadius: 22, padding: "20px 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: `1px solid ${C.border}` }}>
+        <img src={growthImage(dayCount, latestMood, history.length)} alt="Rootin" style={{ width: 256, height: 256, objectFit: "contain" }} />
+        <p style={{ fontSize: 12, color: C.gray, marginTop: 8, textTransform: "capitalize" }}>{growthStage} · {history.length} check-in{history.length === 1 ? "" : "s"}</p>
       </div>
       <div style={{ margin: "0 20px 12px" }}>
         <div onClick={() => { setSStep(1); go("symSurveyIntro"); }} style={{ background: "white", borderRadius: 16, padding: "18px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", border: `1px solid ${C.border}`, cursor: "pointer" }}>
           <div>
             <p style={{ fontSize: 16, fontWeight: 600 }}>Daily Health Check-in</p>
-            <p style={{ fontSize: 13, color: C.gray, marginTop: 2 }}>0/5</p>
+            <p style={{ fontSize: 13, color: C.gray, marginTop: 2 }}>{lastRecord ? "Completed today" : "0/1"}</p>
           </div>
           <ChevronRight />
         </div>
       </div>
       <div style={{ margin: "0 20px 20px" }}>
         <div style={{ background: "white", borderRadius: 16, padding: 16, border: `1px solid ${C.border}` }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <div style={{ width: 20, height: 20, borderRadius: "50%", background: C.dark }} />
-            <span style={{ fontSize: 15 }}>Hot flash  <strong>7</strong></span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 16, height: 16, borderRadius: "50%", background: C.gray }} />
-            <span style={{ fontSize: 13, color: C.gray }}>2:35pm  <strong style={{ color: C.dark }}>Severe</strong></span>
-          </div>
+          {lastRecord ? (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <div style={{ width: 20, height: 20, borderRadius: "50%", background: C.dark }} />
+                <span style={{ fontSize: 15 }}>Insomnia (ISI)  <strong>{lastRecord.isi.total}/28</strong></span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 16, height: 16, borderRadius: "50%", background: C.gray }} />
+                <span style={{ fontSize: 13, color: C.gray }}>Day {lastRecord.day}  <strong style={{ color: C.dark }}>{lastRecord.isi.level.label}</strong></span>
+              </div>
+            </>
+          ) : (
+            <p style={{ fontSize: 13, color: C.gray }}>No check-ins yet — complete a survey to see results here.</p>
+          )}
         </div>
       </div>
     </ScrWithNav>
@@ -898,23 +1225,28 @@ function RootinApp() {
   /* ─── SYMPTOM LOG COMPLETE ────────────────────────── */
   if (scr === "symDone") return (
     <Scr style={{ alignItems: "center" }}>
-      <button onClick={() => { setHist([]); setScr("home"); }} style={{ position: "absolute", top: 104, right: 20, background: "rgba(0,0,0,0.08)", border: "none", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", fontSize: 16, color: C.dark, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "104px 20px 0", width: "100%" }}>
-        <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, textAlign: "center" }}>DAY {dayCount} Rooted!</h2>
-        <div style={{ width: 160, height: 160, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
-          <Sprout size={130} />
+      <button onClick={() => { setHist([]); setScr("home"); }} style={{ position: "absolute", top: 104, right: 24, background: "transparent", border: "none", padding: 0, width: 20, height: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><img src={XIcon} alt="" style={{ width: 20, height: 20 }} /></button>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "160px 20px 0", width: "100%" }}>
+        <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 44, textAlign: "center" }}>DAY {dayCount} Rooted!</h2>
+        <div style={{ width: 140, height: 140, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 44 }}>
+          <img src={growthImage(dayCount, latestMood, history.length)} alt="Rootin" style={{ width: 140, height: 140, objectFit: "contain" }} />
         </div>
-        <p style={{ fontSize: 14, color: C.gray, marginBottom: 28, textAlign: "center", lineHeight: 1.7 }}>One small root today.<br />Let's grow again tomorrow.</p>
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10 }}>
-          {[{ l: "Hot flash rating", v: 7, t: "2:35pm", s: "Severe" }, { l: "Headache rating", v: 3, t: "2:35pm", s: "Mild" }].map((e, i) => (
-            <div key={i} style={{ background: "white", borderRadius: 16, padding: "18px 20px", border: `1px solid ${C.border}` }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 32 }}>
+        <p style={{ fontSize: 14, color: C.gray, marginBottom: 44, textAlign: "center", lineHeight: 1.7 }}>One small root today.<br />Let's grow again tomorrow.</p>
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
+          {lastRecord && [
+            { l: "Insomnia (ISI)", v: `${lastRecord.isi.total}/28`, s: lastRecord.isi.level.label },
+            lastRecord.cvd.valid
+              ? { l: "CVD 10-yr risk", v: `${lastRecord.cvd.capped ? ">30" : lastRecord.cvd.pct.toFixed(1)}%`, s: lastRecord.cvd.level.label }
+              : { l: "Hot flash interference", v: `${lastRecord.hotflash.avg.toFixed(1)}/10`, s: lastRecord.hotflash.avg >= 5 ? "High interference" : "Low–moderate" },
+          ].map((e, i) => (
+            <div key={i} style={{ height: 112, boxSizing: "border-box", background: "white", borderRadius: 16, padding: "18px 20px", border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                 <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#555", flexShrink: 0 }} />
                 <span style={{ fontSize: 15, fontWeight: 500 }}>{e.l}&nbsp;&nbsp;<strong>{e.v}</strong></span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 16, height: 16, borderRadius: "50%", background: "#999", flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: C.gray }}>{e.t}&nbsp;&nbsp;<strong style={{ color: C.dark }}>{e.s}</strong></span>
+                <span style={{ fontSize: 13, color: C.gray }}>Day {lastRecord.day}&nbsp;&nbsp;<strong style={{ color: C.dark }}>{e.s}</strong></span>
               </div>
             </div>
           ))}
@@ -954,19 +1286,26 @@ function RootinApp() {
         <div style={{ marginTop: 32 }}>
           <p style={{ fontSize: 14, fontWeight: 700, color: C.gray, marginBottom: 12, letterSpacing: "0.05em", textTransform: "uppercase" }}>Prototype Testing</p>
           <div style={{ background: "white", borderRadius: 16, overflow: "hidden", border: `1px solid ${C.border}` }}>
-            <div onClick={() => { setIsSetup(true); setSlide(0); setAgreed(false); setCharName("Sprout"); setInp("Sprout"); setNi(0); setUStep(1); setSStep(1); setDayCount(1); setHist([]); setScr("splash"); }} style={{ padding: "18px 20px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${C.border}` }}>
+            <div onClick={() => { setIsSetup(true); setSlide(0); setAgreed(false); setCharName("Sprout"); setInp("Sprout"); setNi(0); setUStep(1); setSStep(1); setDayCount(1); setRound(0); setGrowthStage("seed"); setCollection([]); setHistory([]); setUd({}); setSd({}); setHist([]); setScr("splash"); }} style={{ padding: "18px 20px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${C.border}` }}>
               <div>
                 <p style={{ fontSize: 16, fontWeight: 600 }}>Simulate First Run</p>
-                <p style={{ fontSize: 13, color: C.gray, marginTop: 2 }}>Restart from Splash → Onboarding</p>
+                <p style={{ fontSize: 13, color: C.gray, marginTop: 2 }}>Restart from Splash → Onboarding (seed planted)</p>
               </div>
               <span style={{ fontSize: 18, color: C.gray }}>↺</span>
             </div>
-            <div onClick={() => { setIsSetup(false); setSStep(1); setHist([]); setScr("symSurveyIntro"); }} style={{ padding: "18px 20px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div onClick={() => { setIsSetup(false); setSStep(1); setSd({}); setHist([]); setScr("symSurveyIntro"); }} style={{ padding: "18px 20px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${C.border}` }}>
               <div>
                 <p style={{ fontSize: 16, fontWeight: 600 }}>Simulate Re-opening</p>
-                <p style={{ fontSize: 13, color: C.gray, marginTop: 2 }}>App re-open → Symptom Survey → Rooted!</p>
+                <p style={{ fontSize: 13, color: C.gray, marginTop: 2 }}>App re-open → Symptom Survey (round {round + 1})</p>
               </div>
               <span style={{ fontSize: 18, color: C.gray }}>▶</span>
+            </div>
+            <div onClick={() => { setRound(0); setGrowthStage("seed"); setCollection([]); setHistory([]); setSd({}); setHist([]); }} style={{ padding: "18px 20px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <p style={{ fontSize: 16, fontWeight: 600 }}>Reset Growth &amp; History</p>
+                <p style={{ fontSize: 13, color: C.gray, marginTop: 2 }}>Clear in-session check-ins, keep onboarding</p>
+              </div>
+              <span style={{ fontSize: 18, color: C.gray, display: "flex" }}><img src={XIcon} alt="" style={{ width: 18, height: 18 }} /></span>
             </div>
           </div>
         </div>
@@ -1042,19 +1381,19 @@ function RootinApp() {
         <button onClick={() => go("myData")} style={{ background: C.lightGray, border: "none", borderRadius: 10, padding: "7px 16px", cursor: "pointer", fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>Edit</button>
       </div>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 20px 20px" }}>
-        <div style={{ borderRadius: 18, width: 140, height: 140, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-          <Sprout size={110} />
+        <div style={{ width: 140, height: 140, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+          <img src={GrowBloom} alt="Rootin" style={{ width: 140, height: 140, objectFit: "contain" }} />
         </div>
         <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Alex</h2>
         <p style={{ fontSize: 13, color: C.gray, marginBottom: 18 }}>Joined on 28 August 2025</p>
         <Button color={C.dark} onClick={() => go("rootinColl")} style={{ width: "auto", padding: "12px 32px" }}>Rootin Collection</Button>
       </div>
       <div style={{ padding: "0 20px 40px", display: "flex", flexDirection: "column", gap: 10 }}>
-        {["Hot flash","Joint Pain","Insomnia","CVD Risk","Headache","General Health"].map(s => (
+        {["Hot flash","Joint Pain","Insomnia","CVD Risk","General Health"].map(s => (
           <div key={s} onClick={() => setExpand(e => ({ ...e, [s]: !e[s] }))} style={{ background: "white", borderRadius: 16, border: `1px solid ${C.border}`, overflow: "hidden", cursor: "pointer" }}>
             <div style={{ padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 16 }}>{s}</span>
-              <span style={{ color: C.gray, display: "inline-block", transform: expand[s] ? "rotate(180deg)" : "rotate(0deg)", transition: "transform .2s" }}>▾</span>
+              <img src={ArrowDown} alt="" style={{ width: 16, height: 16, transform: expand[s] ? "rotate(180deg)" : "rotate(0deg)", transition: "transform .2s" }} />
             </div>
             {expand[s] && (
               <div style={{ padding: "0 20px 16px", borderTop: `1px solid ${C.border}` }}>
@@ -1069,18 +1408,14 @@ function RootinApp() {
 
   /* ─── ROOTIN COLLECTION ───────────────────────────── */
   if (scr === "rootinColl") {
-    const chars = [
-      ...VAR_IMAGES.map((img, i) => ({ name: `Rootin ${i + 1}`, img, unlocked: true })),
-      { name: "Rootin 7", img: null, unlocked: false },
-      { name: "Rootin 8", img: null, unlocked: false },
-    ];
+    const chars = VAR_IMAGES.map((img, i) => ({ name: `Rootin ${i + 1}`, img, unlocked: collection.includes(i) }));
     return (
       <Scr scroll>
         <div style={{ padding: "104px 20px 12px", display: "flex", alignItems: "center", gap: 10 }}>
           <BackBtn go={back} />
           <h2 style={{ fontSize: 22, fontWeight: 700 }}>Rootin Collection</h2>
         </div>
-        <p style={{ fontSize: 13, color: C.gray, paddingLeft: 20, marginBottom: 16 }}>6/16 unlocked</p>
+        <p style={{ fontSize: 13, color: C.gray, paddingLeft: 20, marginBottom: 16 }}>{collection.length}/{VAR_IMAGES.length} unlocked</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, padding: "0 20px 40px" }}>
           {chars.map((c, i) => (
             <div key={i} onClick={() => { if (c.unlocked) { setSelectedChar(i); go("rootinDetail"); } }} style={{ background: "white", borderRadius: 16, padding: "22px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, border: `1px solid ${C.border}`, cursor: c.unlocked ? "pointer" : "default", opacity: c.unlocked ? 1 : 0.4 }}>
@@ -1101,14 +1436,12 @@ function RootinApp() {
     const varImg = VAR_IMAGES[selectedChar] || VAR_IMAGES[0];
     return (
       <Scr scroll>
-        <div style={{ position: "relative", flexShrink: 0 }}>
-          <div style={{ height: 400, background: "white", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-            <img src={varImg} alt="Rootin character" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
-          </div>
-          <BackBtn go={back} overlay />
+        <div style={{ padding: "104px 20px 0" }}>
+          <BackBtn go={back} />
         </div>
-        <div style={{ padding: "24px 24px 48px", textAlign: "center" }}>
-          <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>Rootin {selectedChar + 1}</h2>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "88px 24px 48px", textAlign: "center" }}>
+          <img src={varImg} alt="Rootin character" style={{ width: 256, height: 256, objectFit: "contain" }} />
+          <h2 style={{ fontSize: 22, fontWeight: 700, marginTop: 88, marginBottom: 20 }}>Rootin {selectedChar + 1}</h2>
           <p style={{ fontSize: 14, color: C.gray, lineHeight: 1.75 }}>A Rootin born from your balanced health.<br />Its bright leaves glow with vitality, reflecting the strength of your routine.</p>
         </div>
       </Scr>
@@ -1138,15 +1471,14 @@ function RootinApp() {
 
   /* ─── MOMENTS ─────────────────────────────────────── */
   if (scr === "moments") {
-    const filters = ["Hot flash","Headache","Joint Pain","Insomnia","CVD Risk"];
+    const filters = ["Hot flash","Joint Pain","Insomnia","CVD Risk"];
     const entriesMap = {
-      "Hot flash":  [{d:"Wed",n:7,l:"Hot flash rating",v:7,t:"2:35pm",s:"Severe"},{d:"Tue",n:6,l:"Hot flash rating",v:5,t:"11:20am",s:"Moderate"},{d:"Mon",n:5,l:"Hot flash rating",v:8,t:"3:10pm",s:"Severe"}],
-      "Headache":   [{d:"Wed",n:7,l:"Headache rating",v:3,t:"2:35pm",s:"Mild"},{d:"Mon",n:5,l:"Headache rating",v:6,t:"9:00am",s:"Moderate"}],
-      "Joint Pain": [{d:"Wed",n:7,l:"Joint pain severity",v:4,t:"8:00am",s:"Moderate"},{d:"Sun",n:3,l:"Joint pain severity",v:6,t:"7:30am",s:"Severe"}],
-      "Insomnia":   [{d:"Thu",n:8,l:"Insomnia severity",v:5,t:"6:00am",s:"Moderate"}],
-      "CVD Risk":   [{d:"Fri",n:2,l:"CVD risk score",v:7,t:"10:00am",s:"High"}],
+      "Hot flash":  history.map(r => ({ d: `Day ${r.day}`, n: r.day, l: "Hot flash interference", v: r.hotflash.avg.toFixed(1), s: r.hotflash.avg >= 5 ? "High interference" : "Low–moderate" })),
+      "Joint Pain": history.map(r => ({ d: `Day ${r.day}`, n: r.day, l: "Joint pain (avg)", v: r.joint.avg.toFixed(1), s: r.joint.avg >= 2 ? "Notable" : "Mild" })),
+      "Insomnia":   history.map(r => ({ d: `Day ${r.day}`, n: r.day, l: "ISI total", v: `${r.isi.total}/28`, s: r.isi.level.label })),
+      "CVD Risk":   history.filter(r => r.cvd.valid).map(r => ({ d: `Day ${r.day}`, n: r.day, l: "10-yr CVD risk", v: `${r.cvd.capped ? ">30" : r.cvd.pct.toFixed(1)}%`, s: r.cvd.level.label })),
     };
-    const entries = entriesMap[af] || [];
+    const entries = (entriesMap[af] || []).slice().reverse();
     return (
       <ScrWithNav activeTab={tab} navGo={navTab}>
         <div style={{ padding: "104px 20px 8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1156,11 +1488,11 @@ function RootinApp() {
         {/* ✅ ArrowLeft, ArrowRight: img → SVG 컴포넌트 */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 20px" }}>
           <button style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
-            <ArrowLeft style={{ width: 20, height: 20, opacity: 0.5, pointerEvents: "none" }} />
+            <img src={ArrowLeft} alt="" style={{ width: 20, height: 20, opacity: 0.5, pointerEvents: "none" }} />
           </button>
           <span style={{ fontSize: 16, fontWeight: 600 }}>Today</span>
           <button style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
-            <ArrowRight style={{ width: 20, height: 20, opacity: 0.5, pointerEvents: "none" }} />
+            <img src={ArrowRight} alt="" style={{ width: 20, height: 20, opacity: 0.5, pointerEvents: "none" }} />
           </button>
         </div>
         <div style={{ display: "flex", gap: 8, padding: "0 20px 16px", overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
@@ -1184,7 +1516,7 @@ function RootinApp() {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ width: 14, height: 14, borderRadius: "50%", background: C.gray, flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, color: C.gray }}>{e.t}  <strong style={{ color: C.dark }}>{e.s}</strong></span>
+                  <span style={{ fontSize: 12, color: C.gray }}><strong style={{ color: C.dark }}>{e.s}</strong></span>
                 </div>
               </div>
             </div>
@@ -1199,27 +1531,32 @@ function RootinApp() {
     const days = ["S","M","T","W","T","F","S"];
     const cells = Array(3 + 31).fill(null).map((_, i) => i >= 3 ? i - 3 + 1 : null);
     while (cells.length % 7 !== 0) cells.push(null);
-    const greenDays = [1, 22, 25], redDays = [4, 12, 16];
+    // Map each completed check-in to "today minus N days" so the calendar fills in
+    // live as the person repeats the survey in this session (no data is persisted).
+    const today = 28;
+    const moodByDay = {};
+    history.forEach((r, i) => {
+      const dayOfMonth = today - (history.length - 1 - i);
+      if (dayOfMonth > 0) moodByDay[dayOfMonth] = r.mood;
+    });
+    const greenDays = Object.keys(moodByDay).filter(d => moodByDay[d] === "good").map(Number);
+    const redDays = Object.keys(moodByDay).filter(d => moodByDay[d] === "poor").map(Number);
+    const amberDays = Object.keys(moodByDay).filter(d => moodByDay[d] === "moderate").map(Number);
     return (
       <ScrWithNav activeTab={tab} navGo={navTab}>
-        <div style={{ padding: "104px 20px 12px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <BackBtn go={back} />
-            <div>
-              <h2 style={{ fontSize: 24, fontWeight: 700, lineHeight: 1 }}>Calendar</h2>
-              <p style={{ fontSize: 13, color: C.gray, marginTop: 2 }}>See your progress</p>
-            </div>
-          </div>
+        <div style={{ padding: "104px 20px 0 32px" }}>
+          <h2 style={{ fontSize: 24, fontWeight: 700, lineHeight: 1 }}>Calendar</h2>
+          <p style={{ fontSize: 13, color: C.gray, marginTop: 2 }}>See your progress</p>
         </div>
-        <div style={{ margin: "0 16px 20px", background: "white", borderRadius: 22, padding: "18px 16px 24px", border: `1px solid ${C.border}`, flex: 1 }}>
+        <div style={{ width: 362, height: 524, margin: "32px auto 20px", background: "white", borderRadius: 22, padding: "18px 16px 24px", border: `1px solid ${C.border}`, boxSizing: "border-box", overflow: "hidden" }}>
           {/* ✅ ArrowLeft, ArrowRight: img → SVG 컴포넌트 */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
             <button style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
-              <ArrowLeft style={{ width: 20, height: 20, opacity: 0.5, pointerEvents: "none" }} />
+              <img src={ArrowLeft} alt="" style={{ width: 20, height: 20, opacity: 0.5, pointerEvents: "none" }} />
             </button>
             <p style={{ fontSize: 15, fontWeight: 600 }}>October 2025</p>
             <button style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
-              <ArrowRight style={{ width: 20, height: 20, opacity: 0.5, pointerEvents: "none" }} />
+              <img src={ArrowRight} alt="" style={{ width: 20, height: 20, opacity: 0.5, pointerEvents: "none" }} />
             </button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: 10 }}>
@@ -1227,8 +1564,9 @@ function RootinApp() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", rowGap: 64, columnGap: 5 }}>
             {cells.map((day, i) => {
-              const isG = day && greenDays.includes(day), isR = day && redDays.includes(day);
-              return <div key={i} style={{ aspectRatio: "1", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: isG ? C.green : isR ? C.red : day ? C.lightGray : "transparent", fontSize: 12, color: (isG || isR) ? "white" : day ? C.dark : "transparent", fontWeight: day ? 500 : 400 }}>{day || ""}</div>;
+              const isG = day && greenDays.includes(day), isR = day && redDays.includes(day), isA = day && amberDays.includes(day);
+              const bg = isG ? C.green : isR ? C.red : isA ? "#C98A2E" : day ? C.lightGray : "transparent";
+              return <div key={i} style={{ width: 30, height: 30, justifySelf: "center", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: bg, fontSize: 12, color: (isG || isR || isA) ? "white" : day ? C.dark : "transparent", fontWeight: day ? 500 : 400 }}>{day || ""}</div>;
             })}
           </div>
         </div>
@@ -1239,12 +1577,25 @@ function RootinApp() {
   /* ─── TRENDS ──────────────────────────────────────── */
   if (scr === "trends") {
     const W = 306, H = 170;
-    const DATA = {
-      Week:    { p1:[[14,100],[60,28],[106,92],[152,18],[198,75],[244,42],[292,62]], p2:[[14,20],[60,82],[106,24],[152,110],[198,16],[244,80],[292,48]], p3:[[14,60],[60,46],[106,74],[152,36],[198,66],[244,52],[292,60]], avg:"6.4", total:"7",  labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], bw:8,  gap:2 },
-      Month:   { p1:[[21,68],[87,30],[153,80],[219,26],[285,55]], p2:[[21,42],[87,90],[153,35],[219,88],[285,52]], p3:[[21,64],[87,54],[153,70],[219,46],[285,62]], avg:"5.8", total:"24", labels:["Wk1","Wk2","Wk3","Wk4","Wk5"], bw:12, gap:3 },
-      Quarter: { p1:[[31,62],[153,38],[275,56]], p2:[[31,46],[153,74],[275,50]], p3:[[31,58],[153,54],[275,55]], avg:"5.2", total:"89", labels:["Jan","Apr","Jul"], bw:18, gap:4 },
+    // Real per-round values, scaled onto the same 0–H axis: ISI (0–28), hot flash
+    // interference (0–10 → ×2.8), CVD risk (0–30% → ×5.67). No data persists, so
+    // this only ever reflects the check-ins completed in this session.
+    const rounds = history.length ? history : [];
+    const toXY = (vals, w) => {
+      if (!vals.length) return [[w / 2, H]];
+      const step = vals.length > 1 ? (w - 28) / (vals.length - 1) : 0;
+      return vals.map((v, i) => [14 + i * step, Math.max(0, H - v)]);
     };
-    const d = DATA[period];
+    const isiVals = rounds.map(r => H * (r.isi.total / 28));
+    const hfVals = rounds.map(r => H * (r.hotflash.avg / 10));
+    const cvdVals = rounds.map(r => r.cvd.valid ? H * (Math.min(r.cvd.pct, 30) / 30) : 0);
+    const labels = rounds.map(r => `Day ${r.day}`);
+    const avgIsi = rounds.length ? (rounds.reduce((s, r) => s + r.isi.total, 0) / rounds.length).toFixed(1) : "–";
+    const d = {
+      p1: toXY(isiVals, W), p2: toXY(hfVals, W), p3: toXY(cvdVals, W),
+      avg: avgIsi, total: String(rounds.length),
+      labels: labels.length ? labels : [""], bw: 10, gap: 3,
+    };
     const mkPath = pts => { let p = `M ${pts[0][0]} ${pts[0][1]}`; for (let i = 1; i < pts.length; i++) { const t = 0.35, dx = pts[i][0]-pts[i-1][0]; p += ` C ${pts[i-1][0]+dx*t} ${pts[i-1][1]}, ${pts[i][0]-dx*t} ${pts[i][1]}, ${pts[i][0]} ${pts[i][1]}`; } return p; };
     const PillToggle = ({ opts, value, set }) => (
       <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
@@ -1255,17 +1606,17 @@ function RootinApp() {
     return (
       <ScrWithNav activeTab={tab} navGo={navTab}>
         <style>{`@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }`}</style>
-        <div style={{ padding: "104px 20px 14px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <BackBtn go={back} />
-            <h2 style={{ fontSize: 24, fontWeight: 700 }}>Symptom Trends</h2>
-          </div>
+        <div style={{ padding: "104px 20px 14px 32px" }}>
+          <h2 style={{ fontSize: 24, fontWeight: 700 }}>Symptom Trends</h2>
         </div>
         <div style={{ padding: "0 15.5px 20px" }}>
           <PillToggle opts={["Week","Month","Quarter"]} value={period} set={setPeriod} />
           <PillToggle opts={["Line Chart","Bar Chart"]} value={cType} set={setCType} />
           <div style={{ width: 362, height: 308, background: "white", borderRadius: 18, padding: 28, border: `1px solid ${C.border}`, marginBottom: 14, boxSizing: "border-box", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <svg key={`${period}-${cType}`} width={W} height={208} viewBox={`0 0 ${W} ${H + 20}`} style={{ display: "block", overflow: "visible", animation: "fadeIn .35s ease-in" }}>
+            {!rounds.length && (
+              <p style={{ fontSize: 13, color: C.gray, textAlign: "center", marginTop: 70 }}>Complete a symptom survey to see your trends here.</p>
+            )}
+            {!!rounds.length && <svg key={`${period}-${cType}`} width={W} height={208} viewBox={`0 0 ${W} ${H + 20}`} style={{ display: "block", overflow: "visible", animation: "fadeIn .35s ease-in" }}>
               {gridYs.map(y => <line key={y} x1="0" y1={y} x2={W} y2={y} stroke={C.border} strokeWidth="0.7" strokeDasharray="4 3"/>)}
               {cType === "Line Chart" ? (<>
                 <path d={mkPath(d.p1)} fill="none" stroke={C.dark}  strokeWidth="2.2" strokeLinecap="round"/>
@@ -1277,9 +1628,9 @@ function RootinApp() {
                 {d.p1.map((pt,i) => { const bw=d.bw,g=d.gap,x1=pt[0]-bw*1.5-g,x2=pt[0]-bw*0.5,x3=pt[0]+bw*0.5+g; return (<g key={i}><rect x={x1} y={pt[1]} width={bw} height={H-pt[1]} fill={C.dark} rx="3" opacity="0.9"/><rect x={x2} y={d.p2[i][1]} width={bw} height={H-d.p2[i][1]} fill={C.brown} rx="3" opacity="0.9"/><rect x={x3} y={d.p3[i][1]} width={bw} height={H-d.p3[i][1]} fill={C.gray} rx="3" opacity="0.9"/></g>); })}
               </>)}
               {d.labels.map((l,i) => <text key={i} x={d.p1[i][0]} y={H+16} textAnchor="middle" fontSize="9" fill={C.gray}>{l}</text>)}
-            </svg>
+            </svg>}
             <div style={{ display: "flex", gap: 18, justifyContent: "center" }}>
-              {[[C.dark,"Hot flash"],[C.brown,"Headache"],[C.gray,"Fatigue"]].map(([color,label]) => (
+              {[[C.dark,"Insomnia (ISI)"],[C.brown,"Hot flash"],[C.gray,"CVD risk"]].map(([color,label]) => (
                 <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 22, height: 3, background: color, borderRadius: 2 }}/>
                   <span style={{ fontSize: 11, color: C.gray }}>{label}</span>
@@ -1288,7 +1639,7 @@ function RootinApp() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 12 }}>
-            {[["Average Severity", d.avg],["Total Entries", d.total]].map(([label,value]) => (
+            {[["Average ISI Score", d.avg],["Check-ins", d.total]].map(([label,value]) => (
               <div key={label} style={{ flex: 1, background: "white", borderRadius: 16, padding: "18px 16px", border: `1px solid ${C.border}` }}>
                 <p style={{ fontSize: 13, color: C.gray, marginBottom: 8 }}>{label}</p>
                 <p style={{ fontSize: 28, fontWeight: 700, color: C.dark }}>{value}</p>
@@ -1303,9 +1654,9 @@ function RootinApp() {
   /* ─── HELPFUL INFO ────────────────────────────────── */
   if (scr === "helpfulInfo") return (
     <ScrWithNav activeTab={tab} navGo={navTab}>
-      <div style={{ padding: "104px 20px 16px" }}>
-        <h2 style={{ fontSize: 24, fontWeight: 700 }}>Helpful Information</h2>
-        <p style={{ fontSize: 14, color: C.gray, marginTop: 4 }}>Discover helpful information to support your journey.</p>
+      <div style={{ padding: "104px 20px 32px" }}>
+        <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>Helpful Information</h2>
+        <p style={{ fontSize: 14, color: C.gray }}>Discover helpful information to support your journey.</p>
       </div>
       <div style={{ padding: "0 20px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
         {[{title:"Basic Information",sub:"Learn the basics about Aromatase Inhibitors and related symptoms.",dest:"basicInfo"},{title:"Symptom Management",sub:"Learn ways to manage your symptoms.",dest:"symptomMgmt"}].map(item => (
@@ -1324,9 +1675,10 @@ function RootinApp() {
   /* ─── BASIC INFO ──────────────────────────────────── */
   if (scr === "basicInfo") return (
     <Scr scroll>
+      <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <div style={{ minHeight: "40vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 20px 16px" }}>
-          <Sprout size={260} />
+        <div style={{ height: 382, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <img src={GrowBloom} alt="Rootin" style={{ width: 270, height: 270, objectFit: "contain" }} />
         </div>
         <BackBtn go={back} overlay />
       </div>
@@ -1347,8 +1699,9 @@ function RootinApp() {
   /* ─── BREAST CANCER SUMMARY ───────────────────────── */
   if (scr === "bcSummary") return (
     <Scr scroll>
+      <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <div style={{ height: 400, overflow: "hidden" }}>
+        <div style={{ height: 359, overflow: "hidden" }}>
           <img src={BreastCancerIllustration} alt="Breast Cancer" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 80%", display: "block" }} />
         </div>
         <BackBtn go={back} overlay />
@@ -1367,8 +1720,9 @@ function RootinApp() {
   /* ─── AI SUMMARY ──────────────────────────────────── */
   if (scr === "aiSummary") return (
     <Scr scroll>
+      <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <div style={{ height: 400, overflow: "hidden" }}>
+        <div style={{ height: 359, overflow: "hidden" }}>
           <img src={AIIllustration} alt="Aromatase Inhibitor" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         </div>
         <BackBtn go={back} overlay />
@@ -1387,8 +1741,9 @@ function RootinApp() {
   /* ─── ARTICLE: BREAST CANCER ──────────────────────── */
   if (scr === "articleBC") return (
     <Scr scroll>
+      <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <div style={{ height: 400, overflow: "hidden" }}>
+        <div style={{ height: 359, overflow: "hidden" }}>
           <img src={BreastCancerIllustration} alt="Breast Cancer" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 80%", display: "block" }} />
         </div>
         <BackBtn go={back} overlay />
@@ -1405,8 +1760,9 @@ function RootinApp() {
   /* ─── ARTICLE: AROMATASE INHIBITOR ───────────────── */
   if (scr === "articleAI") return (
     <Scr scroll>
+      <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <div style={{ height: 400, overflow: "hidden" }}>
+        <div style={{ height: 359, overflow: "hidden" }}>
           <img src={AIIllustration} alt="Aromatase Inhibitor" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         </div>
         <BackBtn go={back} overlay />
@@ -1428,15 +1784,15 @@ function RootinApp() {
   );
 
   /* ─── SYMPTOMS GRID ───────────────────────────────── */
-  if (scr === "sympGrid") return <GridMenu back={back} title="Symptoms"
+  if (scr === "sympGrid") return <GridMenu back={back} title="Symptoms" topGap={32} gridGap={12} cardW={173} cardH={133}
     subtitle="While aromatase inhibitors improve survival outcomes, they can cause side effects related to low estrogen levels. Common symptoms include heart-related risks, bone loss, joint and muscle pain, hot flashes, fatigue, sleep problems, and mood changes.¹² ¹⁶"
     items={[
-      { label: "Cardiovascular",      img: RootinCardiovascular, go: () => go("aCardio") },
-      { label: "Bone Loss",           img: RootinBoneLoss,       go: () => go("aBoneLoss") },
-      { label: "Bone Fractures",      img: RootinBoneFractures,  go: () => go("aBoneFx") },
-      { label: "Joint & Muscle Pain", img: RootinMusclePain,     go: () => go("aJoint") },
-      { label: "Hot Flashes",         img: RootinHotFlash,       go: () => go("aHotFlash") },
-      { label: "Fatigue",             img: RootinFatigue,        go: () => go("aFatigue") },
+      { label: "Cardiovascular",      Icon: CardioVIcon,   go: () => go("aCardio") },
+      { label: "Bone Loss",           Icon: OsteoIcon,     go: () => go("aBoneLoss") },
+      { label: "Bone Fractures",      Icon: OsteoPIcon,    go: () => go("aBoneFx") },
+      { label: "Joint & Muscle Pain", Icon: AimssIcon,     go: () => go("aJoint") },
+      { label: "Hot Flashes",         Icon: HotflashIcon,  go: () => go("aHotFlash") },
+      { label: "Fatigue",             Icon: FatigueIcon,   go: () => go("aFatigue") },
     ]}
   />;
 
@@ -1496,22 +1852,40 @@ function RootinApp() {
   ]} />;
 
   /* ─── SYMPTOM MANAGEMENT ─────────────────────────── */
-  if (scr === "symptomMgmt") return <GridMenu back={back} title="Symptom Management" items={[
-    { label: "Cardiovascular", go: () => go("mCardio") },
-    { label: "Osteoporosis",   go: () => go("mOsteo") },
-    { label: "AIMSS",          go: () => go("mAIMSS") },
-    { label: "Hot Flashes",    go: () => go("mHotFlash") },
-    { label: "Fatigue",        go: () => go("mFatigue") },
-  ]} />;
+  if (scr === "symptomMgmt") return (
+    <Scr scroll>
+      <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
+      <div style={{ position: "relative", flexShrink: 0, height: 62 }}>
+        <BackBtn go={back} overlay />
+      </div>
+      <div style={{ padding: "60px 20px 60px" }}>
+        <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 88 }}>Symptom Management</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 173px)", justifyContent: "center", gap: 12 }}>
+          {[
+            { label: "Cardiovascular", Icon: CardioVIcon,  go: () => go("mCardio") },
+            { label: "Osteoporosis",   Icon: OsteoPIcon,   go: () => go("mOsteo") },
+            { label: "AIMSS",          Icon: AimssIcon,    go: () => go("mAIMSS") },
+            { label: "Hot Flashes",    Icon: HotflashIcon, go: () => go("mHotFlash") },
+            { label: "Fatigue",        Icon: FatigueIcon,  go: () => go("mFatigue") },
+          ].map(item => (
+            <div key={item.label} onClick={item.go} style={{ width: 173, height: 133, boxSizing: "border-box", background: "white", borderRadius: 16, padding: "22px 12px 18px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, border: `1.5px solid ${C.brown}33`, cursor: "pointer" }}>
+              <img src={item.Icon} alt={item.label} style={{ width: 32, height: 32, display: "block" }} />
+              <p style={{ fontSize: 13, fontWeight: 600, textAlign: "center", color: C.dark }}>{item.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Scr>
+  );
 
-  if (scr === "mCardio")   return <ArticlePage back={back} title="Cardiotoxicity (Heart Health)" body={[
+  if (scr === "mCardio")   return <ArticlePage back={back} heroImg={RootinCardiovascular} title="Cardiotoxicity (Heart Health)" body={[
     <h3 key="np" style={{fontSize:15,fontWeight:700,marginBottom:8}}>Non-pharmacologic</h3>,
     "Regular exercise, a balanced diet, weight control, and smoking cessation are key strategies to support heart health.¹",
     <h3 key="p" style={{fontSize:15,fontWeight:700,marginBottom:8,marginTop:14}}>Pharmacologic</h3>,
     "Not specified in the original source.",
   ]} />;
 
-  if (scr === "mOsteo")    return <ArticlePage back={back} title="Osteoporosis (Bone Thinning)" body={[
+  if (scr === "mOsteo")    return <ArticlePage back={back} heroImg={RootinBoneFractures} title="Osteoporosis (Bone Thinning)" body={[
     <h3 key="np" style={{fontSize:15,fontWeight:700,marginBottom:8}}>Non-pharmacologic</h3>,
     "Supervised exercise, especially weight-bearing and resistance training, supports bone strength.² Lifestyle changes such as reducing smoking and alcohol intake are recommended.²",
     <h3 key="p" style={{fontSize:15,fontWeight:700,marginBottom:8,marginTop:14}}>Pharmacologic / Supplementation</h3>,
@@ -1520,7 +1894,7 @@ function RootinApp() {
     "In appropriate patients, adjuvant bisphosphonates (e.g., IV zoledronate) may be used within oncological care plans and are associated with reduced recurrence and mortality.²",
   ]} />;
 
-  if (scr === "mAIMSS")    return <ArticlePage back={back} title="Myalgia / AIMSS" body={[
+  if (scr === "mAIMSS")    return <ArticlePage back={back} heroImg={RootinMusclePain} title="Myalgia / AIMSS" body={[
     <h3 key="np" style={{fontSize:15,fontWeight:700,marginBottom:8}}>Non-pharmacologic (ASCO-aligned)</h3>,
     "Exercise-based programs (aerobic or supervised training; including walking, Nordic walking, or aquatic exercise) are commonly recommended.¹ Yoga and other mind–body approaches may improve pain and physical function.⁷ Acupuncture is supported across prospective studies and is generally considered safe.⁷",
     <h3 key="p" style={{fontSize:15,fontWeight:700,marginBottom:8,marginTop:14}}>Pharmacologic (ASCO-aligned)</h3>,
@@ -1529,14 +1903,14 @@ function RootinApp() {
     "A short AI interruption or switching to another AI may be considered by clinicians when symptoms are severe and unresponsive, balancing symptom control with cancer outcomes.⁷",
   ]} />;
 
-  if (scr === "mHotFlash")  return <ArticlePage back={back} title="Hot Flashes (Vasomotor Symptoms)" body={[
+  if (scr === "mHotFlash")  return <ArticlePage back={back} heroImg={RootinHotFlash} title="Hot Flashes (Vasomotor Symptoms)" body={[
     <h3 key="np" style={{fontSize:15,fontWeight:700,marginBottom:8}}>Non-pharmacologic</h3>,
     "Evidence-supported supportive care options include acupuncture, cognitive behavioral therapy (CBT), and hypnosis.¹¹ Network meta-analysis data suggest acupuncture is frequently ranked among the most effective nonhormonal options.¹³",
     <h3 key="p" style={{fontSize:15,fontWeight:700,marginBottom:8,marginTop:14}}>Pharmacologic (nonhormonal)</h3>,
     "Common nonhormonal medication options include venlafaxine, gabapentin, and clonidine.¹",
   ]} />;
 
-  if (scr === "mFatigue")   return <ArticlePage back={back} title="Headaches & Fatigue-Related Symptoms" body={[
+  if (scr === "mFatigue")   return <ArticlePage back={back} heroImg={RootinFatigue} title="Headaches & Fatigue-Related Symptoms" body={[
     <h3 key="np" style={{fontSize:15,fontWeight:700,marginBottom:8}}>Non-pharmacologic</h3>,
     "Supportive options include exercise, yoga, meditation or mindfulness practices, CBT, and acupressure, which may also improve sleep quality and overall energy.¹ Improved sleep quality from yoga practice may indirectly reduce headache burden.¹",
   ]} />;
