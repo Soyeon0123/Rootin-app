@@ -132,7 +132,7 @@ function useScale() {
   useEffect(() => {
     const calc = () => {
       const s = Math.min(window.innerWidth / 393, window.innerHeight / 852);
-      setScale(Math.min(s, 1)); // 1 이상 확대는 안 함
+      setScale(s); // fill the real screen — don't cap at 1x anymore
     };
     calc();
     // Mobile keyboards shrink window.innerHeight, not width. Only recompute the
