@@ -1,16 +1,50 @@
-# React + Vite
+# Rootin
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A mobile-first React app for a nursing program — onboarding, study/learning screens, trends and calendar views, quizzes, and more. Built as a phone-style app that runs full-screen on real devices and shows a scaled phone-frame mockup on desktop for demos.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 + Vite (plain JSX, no TypeScript)
+- Inline style objects with shared design tokens from [`src/styles/tokens.js`](src/styles/tokens.js)
+- ESLint for linting; no test suite configured
 
-## React Compiler
+## Getting Started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the Vite dev server |
+| `npm run build` | Production build (outputs to `dist/`) |
+| `npm run lint` | Run ESLint across the repo |
+| `npm run preview` | Serve the production build locally |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+> Note: production builds use base path `/Rootin-app/` (see [`vite.config.js`](vite.config.js)) for GitHub Pages.
+
+## Responsive Behavior
+
+- **Below 768px** (phones/tablets, portrait and landscape): the app fills the screen (`100dvh`, fluid widths) and respects device safe areas via `env(safe-area-inset-*)`.
+- **768px and above**: the app renders inside a 393×852 phone-frame mockup (bezel, fake notch) scaled to fit the window — intended for demos.
+
+## Project Structure
+
+```
+src/
+├── App.jsx                 # Screen flow, navigation state, most screens
+├── index.css               # Global reset, #root sizing, scrollbars
+├── styles/tokens.js        # Colors, spacing, breakpoints, safe-area tokens
+├── assets/loadAssets.js    # Shared icon/illustration loading
+└── components/
+    ├── layout/             # Screen, ScreenWithNav, NavBar
+    └── ui/                 # Button, TextInput, Pill, ProgressBar, RadioCard
+```
+
+`docs/` at the repo root is **generated build output** for GitHub Pages, not source documentation.
+
+## Documentation
+
+- [Codebase overview](project-docs/CODEBASE_OVERVIEW.md) — architecture, conventions, and key files
+- [Responsive redesign changes](project-docs/RESPONSIVE_CHANGES.md) — what changed and why

@@ -2,94 +2,94 @@ import { useState, useEffect, useRef} from "react";
 import html2canvas from "html2canvas";
 import Button from "./components/ui/Button";
 import TextInput from "./components/ui/TextInput.jsx";
-
+import Pill from "./components/ui/Pill.jsx";
+import ProgressBar from "./components/ui/ProgrssBar.jsx";
+import { Radio, Check } from "./components/ui/RadioCard.jsx";
+import Screen from "./components/layout/Screen.jsx";
+import ScreenWithNav from "./components/layout/ScreenWithNav.jsx";
+import {
+  COLORS as C,
+  FONT_FAMILY,
+  SAFE_TOP,
+  SAFE_TOP_SPACER,
+  SAFE_BOTTOM,
+} from "./styles/tokens";
 import RootinLogo from "./assets/logo/Rootin_logo.svg?react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ArrowDown,
+  CircleArrowRight,
+  CircleArrowRightActive,
+  UserIcon,
+  DataIcon,
+  SettingsIcon,
+  XIcon,
+  DiabetesIcon,
+  CardioVIcon,
+  DepressionIcon,
+  HypertensionIcon,
+  OsteoPIcon,
+  OthersIcon,
+  CardioIcon,
+  OsteoIcon,
+  AimssIcon,
+  HotflashIcon,
+  FatigueIcon,
+  RootinGood1,
+  RootinGood2,
+  RootinGood3,
+  RootinGood4,
+  RootinBad1,
+  RootinBad2,
+  GrowSeed,
+  GrowSprout,
+  GrowBloom,
+  BreastCancerIllustration,
+  AIIllustration,
+  RootinCardiovascular,
+  RootinBoneLoss,
+  RootinBoneFractures,
+  RootinMusclePain,
+  RootinHotFlash,
+  RootinFatigue,
+} from "./assets/loadAssets";
 
-/* ─── Resilient asset loading ────────────────────────────────
-   Exact hard-coded filenames kept breaking on tiny naming differences
-   (casing, dash vs underscore, "onclick" vs "Onclick", etc). Instead,
-   we glob-load every file in each folder and pick the one whose name
-   *contains* the keywords we want, ignoring case/punctuation. Everything
-   (icons included) is loaded as a plain image URL string and rendered
-   with <img src={...}/> — works the same for .svg and .png, no special
-   component wrapping needed. A miss just returns null (a harmless empty
-   <img>, never a crash) and prints every keyword tried + every file
-   actually found in that folder to the browser console — copy that if
-   something still doesn't show. */
-const icon24Modules = import.meta.glob("./assets/icons/Icon_24px/*.svg", { eager: true, import: "default" });
-const icon44Modules = import.meta.glob("./assets/icons/Icon_44px/*.svg", { eager: true, import: "default" });
-const charModules = import.meta.glob("./assets/illustrations/Character/*.{png,jpg,jpeg,PNG,JPG}", { eager: true, import: "default" });
-const growModules = import.meta.glob("./assets/illustrations/Grow/*.{png,jpg,jpeg,PNG,JPG}", { eager: true, import: "default" });
-const basicInfoModules = import.meta.glob("./assets/illustrations/Basic_Info/*.{png,jpg,jpeg,PNG,JPG}", { eager: true, import: "default" });
-const symptomModules = import.meta.glob("./assets/illustrations/Symptom_Info/*.{png,jpg,jpeg,PNG,JPG}", { eager: true, import: "default" });
+// App function (Temporary prototype)
 
-const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
-function findAsset(modules, mustInclude, mustExclude = []) {
-  const entries = Object.entries(modules);
-  const hit = entries.find(([path]) => {
-    const p = norm(path);
-    return mustInclude.every(k => p.includes(norm(k))) && !mustExclude.some(k => p.includes(norm(k)));
-  });
-  if (!hit) {
-    console.warn(`[assets] no file matched [${mustInclude.join(", ")}]` + (mustExclude.length ? ` (excluding ${mustExclude.join(", ")})` : "") + `. Files found in this folder:`, entries.map(([p]) => p));
-    return null;
-  }
-  return hit[1];
+function useIsDesktopMockup() {
+  const query = "(min-width: 768px)";
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const mql = window.matchMedia(query);
+    const handler = (e) => setIsDesktop(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, []);
+  return isDesktop;
 }
-const icon24 = (...include) => findAsset(icon24Modules, include, ["onclick"]);
-const icon24Active = (...include) => findAsset(icon24Modules, [...include, "onclick"]);
-const icon44 = (...include) => findAsset(icon44Modules, include, ["onclick"]);
-const icon44Active = (...include) => findAsset(icon44Modules, [...include, "onclick"]);
-const char = (...include) => findAsset(charModules, include);
-const grow = (...include) => findAsset(growModules, include);
-const basicInfo = (...include) => findAsset(basicInfoModules, include);
-const symptom = (...include) => findAsset(symptomModules, include);
 
-// icons — 44px versions for the nav bar + the survey "Next" button, everything
-// else uses the 24px versions. All are plain image URLs, used as <img src=.../>.
-// NOTE: single-letter keywords like "r"/"l"/"x" are dangerous here — "arrow" itself
-// contains "r", and "24px"/"44px" contains "x", so they falsely match unrelated
-// files. Combined tokens ("arrowl", "arrowr", "xicon") avoid that entirely.
-const HomeIcon = icon44("home", "icon");
-const HomeIconActive = icon44Active("home", "icon");
-const CalendarIcon = icon44("calendar", "icon");
-const CalendarIconActive = icon44Active("calendar", "icon");
-const TrendIcon = icon44("trend", "icon");
-const InfoIcon = icon44("info", "icon");
-const InfoIconActive = icon44Active("info", "icon");
-const ArrowLeft = findAsset(icon24Modules, ["arrowl", "icon"], ["circle", "onclick"]);
-const ArrowRight = findAsset(icon24Modules, ["arrowr", "icon"], ["circle", "onclick"]);
-const ArrowUp = icon24("arrow", "up", "icon");
-const ArrowDown = icon24("arrow", "down", "icon");
-const CircleArrowRight = findAsset(icon44Modules, ["circle", "arrowr", "icon"], ["onclick"]);
-const CircleArrowRightActive = findAsset(icon44Modules, ["circle", "arrowr", "icon", "onclick"]);
-const UserIcon = icon24("user", "icon");
-const DataIcon = icon24("data", "icon");
-const SettingsIcon = icon24("setting", "icon");
-const XIcon = icon24("xicon");
-// symptom / condition icons — replace the emoji placeholders
-const DiabetesIcon = icon24("diabetes", "icon");
-const CardioVIcon = icon24("cardiov", "icon");
-const DepressionIcon = icon24("depression", "icon");
-const HypertensionIcon = icon24("hypertension", "icon");
-const OsteoPIcon = icon24("osteop", "icon");
-const OthersIcon = icon24("others", "icon");
-const CardioIcon = findAsset(icon24Modules, ["cardio", "icon"], ["onclick", "cardiov"]);
-const OsteoIcon = findAsset(icon24Modules, ["osteo", "icon"], ["onclick", "osteop"]);
-const AimssIcon = icon24("aimss", "icon");
-const HotflashIcon = icon24("hotflash", "icon");
-const FatigueIcon = icon24("fatigue", "icon");
+function useDesktopScale(active) {
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    if (!active) return undefined;
+    const calc = () => {
+      const s = Math.min(1, (window.innerHeight - 48) / 852, (window.innerWidth - 48) / 393);
+      setScale(s > 0 ? s : 1);
+    };
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, [active]);
+  return active ? scale : 1;
+}
 
-// illustrations — character (daily mood art) + growth-stage art (Grow folder)
-const RootinGood1 = char("good", "01") || char("good", "1");
-const RootinGood2 = char("good", "02") || char("good", "2");
-const RootinGood3 = char("good", "03") || char("good", "3");
-const RootinGood4 = char("good", "04") || char("good", "4");
-const RootinBad1 = char("bad", "01") || char("bad", "1");
-const RootinBad2 = char("bad", "02") || char("bad", "2");
-const GrowSeed = grow("seed");
-const GrowSprout = grow("sprout");
-const GrowBloom = grow("bloom");
+// Collection rewards are the 4 "Good" variants only — the 2 "Bad" variants are
+// reserved for showing a poor/moderate mood, not for the collectible set.
+const VAR_IMAGES = [RootinGood1, RootinGood2, RootinGood3, RootinGood4];
+const GOOD_IMAGES = VAR_IMAGES;
+const BAD_IMAGES = [RootinBad1, RootinBad2];
 
 // Day 1 → Seed, Day 2 → Sprout, Day 3 → Bloom (fixed growth-stage art), Day 4+ →
 // functional: a random Good/Bad variant driven by that round's symptom mood.
@@ -101,68 +101,6 @@ function growthImage(day, mood, variantSeed = 0) {
   if (mood === "moderate") return BAD_IMAGES[1];
   return GOOD_IMAGES[variantSeed % GOOD_IMAGES.length];
 }
-
-// illustrations — basic info
-const BreastCancerIllustration = basicInfo("breast");
-const AIIllustration = basicInfo("ai", "illust");
-
-// illustrations — symptom info
-const RootinCardiovascular = symptom("cardio");
-const RootinBoneLoss = symptom("bone", "loss");
-const RootinBoneFractures = symptom("bone", "fract");
-const RootinMusclePain = symptom("muscle");
-const RootinHotFlash = symptom("hotflash") || symptom("hot", "flash");
-const RootinFatigue = symptom("fatigue");
-
-// App function (Temporary prototype)
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth <= 480);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
-  return isMobile;
-}
-
-function useScale() {
-  const [scale, setScale] = useState(1);
-  const widthRef = useRef(typeof window !== "undefined" ? window.innerWidth : 0);
-  useEffect(() => {
-    const calc = () => {
-      const s = Math.min(window.innerWidth / 393, window.innerHeight / 852);
-      setScale(s); // fill the real screen — don't cap at 1x anymore
-    };
-    calc();
-    // Mobile keyboards shrink window.innerHeight, not width. Only recompute the
-    // scale on real layout changes (rotation/resize), so opening a text input
-    // no longer rescales the whole app up and down.
-    const handler = () => {
-      if (window.innerWidth !== widthRef.current) {
-        widthRef.current = window.innerWidth;
-        calc();
-      }
-    };
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
-  return scale;
-}
-
-/* ─── Design Tokens ──────────────────────────────────────── */
-const C = {
-  bg: "#F3EFE3", green: "#344C3D", dark: "#001910",
-  brown: "#582F0E", white: "#FFFFFF", gray: "#7A7A7A",
-  border: "#D4CFC5", lightGray: "#E3DDD4", cardBg: "#FFFFFF",
-  red: "#8B2020",
-};
-
-// Collection rewards are the 4 "Good" variants only — the 2 "Bad" variants are
-// reserved for showing a poor/moderate mood, not for the collectible set.
-const VAR_IMAGES = [RootinGood1, RootinGood2, RootinGood3, RootinGood4];
-const GOOD_IMAGES = VAR_IMAGES;
-const BAD_IMAGES = [RootinBad1, RootinBad2];
 
 /* ─── Scoring logic (based on validated criteria) ───────────
    Godin, ISI, CVD have clear published cutoffs → scored live.
@@ -264,30 +202,18 @@ const Logo = ({ size = 90 }) => (
   <RootinLogo style={{ width: size, height: size, display: "block" }} />
 );
 
-const Scr = ({ children, scroll = false, bg = C.bg, style = {} }) => (
-  <div style={{ width: "100%", height: "100%", background: bg, display: "flex", flexDirection: "column", fontFamily: "'DM Sans', sans-serif", color: C.dark, overflowY: scroll ? "auto" : "hidden", overflowX: "hidden", position: "relative", ...style }}>{children}</div>
-);
-
-const ScrWithNav = ({ children, activeTab, navGo, bg = C.bg }) => (
-  <div style={{ width: "100%", height: "100%", background: bg, display: "flex", flexDirection: "column", fontFamily: "'DM Sans', sans-serif", color: C.dark, position: "relative" }}>
-    <div style={{ flex: 1, overflowY: "auto", overflowX: "clip", display: "flex", flexDirection: "column" }}>{children}</div>
-    <NavBar active={activeTab} go={navGo} />
-  </div>
-);
-
-const ProgBar = ({ v }) => (
-  <div style={{ height: 9, background: C.lightGray, borderRadius: 13, margin: "4px auto 12px", width: 228, alignSelf: "center" }}>
-    <div style={{ height: "100%", width: `${v * 100}%`, background: C.dark, borderRadius: 13, transition: "width .3s" }} />
-  </div>
-);
+// Aliases keep the many existing screen call sites unchanged.
+const Scr = Screen;
+const ScrWithNav = ScreenWithNav;
+const ProgBar = ProgressBar;
 
 // ✅ BackBtn: circle_arrow_L_icon_24px (+ onclick/pressed variant)
 const BackBtn = ({ go, overlay = false }) => (
   <button onClick={go} style={{
-    width: 34, height: 34, border: "none", cursor: "pointer", padding: 0,
+    width: 44, height: 44, border: "none", cursor: "pointer", padding: 0,
     display: "flex", alignItems: "center", justifyContent: "center",
     ...(overlay
-      ? { position: "absolute", top: 42, left: 20, background: "transparent", zIndex: 10 }
+      ? { position: "absolute", top: "calc(var(--safe-top, 0px) + 34px)", left: 12, background: "transparent", zIndex: 10 }
       : { background: "transparent" }
     ),
   }}>
@@ -301,7 +227,7 @@ const ChevronRight = ({ size = 20 }) => (
 );
 
 const GhostBtn = ({ children, onClick, style = {} }) => (
-  <button onClick={onClick} style={{ background: "transparent", color: C.dark, border: `1.5px solid ${C.border}`, borderRadius: 100, padding: "13px 20px", fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", ...style }}>{children}</button>
+  <button onClick={onClick} style={{ background: "transparent", color: C.dark, border: `1.5px solid ${C.border}`, borderRadius: 100, padding: "13px 20px", fontSize: 15, fontWeight: 600, fontFamily: FONT_FAMILY, cursor: "pointer", ...style }}>{children}</button>
 );
 
 // ✅ ArrowBtn: img → 조건부 SVG 컴포넌트
@@ -317,36 +243,18 @@ const ArrowBtn = ({ onClick }) => {
   );
 };
 
-const Radio = ({ label, on, set }) => (
-  <div onClick={set} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", background: C.cardBg, borderRadius: 14, cursor: "pointer", border: on ? `2px solid ${C.green}` : `1px solid ${C.border}` }}>
-    <span style={{ fontSize: 15 }}>{label}</span>
-    <div style={{ width: 22, height: 22, borderRadius: "50%", border: on ? `7px solid ${C.green}` : `2px solid ${C.border}`, background: "white", flexShrink: 0 }} />
-  </div>
-);
-
-const Check = ({ label, on, toggle }) => (
-  <div onClick={toggle} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", background: C.cardBg, borderRadius: 14, cursor: "pointer", border: on ? `2px solid ${C.green}` : `1px solid ${C.border}` }}>
-    <span style={{ fontSize: 15 }}>{label}</span>
-    <div style={{ width: 22, height: 22, borderRadius: "50%", border: on ? `7px solid ${C.green}` : `2px solid ${C.border}`, background: "white", flexShrink: 0 }} />
-  </div>
-);
-
-const Pill = ({ label, on, click }) => (
-  <button onClick={click} style={{ padding: "10px 18px", borderRadius: 100, cursor: "pointer", fontSize: 14, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", border: on ? `1.5px solid ${C.green}` : `1.5px solid ${C.border}`, background: on ? C.green : "white", color: on ? "white" : C.dark, transition: "all .15s" }}>{label}</button>
-);
-
 const Dropdown = ({ label, value, onChange, opts }) => {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ position: "relative" }}>
       <div onClick={() => setOpen(o => !o)} style={{ background: C.cardBg, borderRadius: 14, border: `1px solid ${open ? C.green : C.border}`, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
-        <span style={{ fontSize: 15, fontFamily: "'DM Sans', sans-serif", color: value ? C.dark : C.gray }}>{value || label}</span>
+        <span style={{ fontSize: 15, fontFamily: FONT_FAMILY, color: value ? C.dark : C.gray }}>{value || label}</span>
         <span style={{ color: C.gray, display: "flex", alignItems: "center" }}>{open ? <img src={ArrowUp} alt="" style={{ width: 16, height: 16 }} /> : <img src={ArrowDown} alt="" style={{ width: 16, height: 16 }} />}</span>
       </div>
       {open && (
         <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "white", borderRadius: 14, border: `1px solid ${C.border}`, zIndex: 200, overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}>
           {opts.map((o, i) => (
-            <div key={o} onClick={() => { onChange(o); setOpen(false); }} style={{ padding: "14px 16px", borderBottom: i < opts.length - 1 ? `1px solid ${C.border}` : "none", cursor: "pointer", fontSize: 15, fontFamily: "'DM Sans', sans-serif", background: value === o ? `${C.green}11` : "white", color: value === o ? C.green : C.dark, fontWeight: value === o ? 600 : 400 }}>
+            <div key={o} onClick={() => { onChange(o); setOpen(false); }} style={{ padding: "14px 16px", borderBottom: i < opts.length - 1 ? `1px solid ${C.border}` : "none", cursor: "pointer", fontSize: 15, fontFamily: FONT_FAMILY, background: value === o ? `${C.green}11` : "white", color: value === o ? C.green : C.dark, fontWeight: value === o ? 600 : 400 }}>
               {o}
             </div>
           ))}
@@ -361,30 +269,6 @@ const Tog = ({ on, flip, color = C.green }) => (
     <div style={{ width: 27, height: 27, borderRadius: "50%", background: "white", position: "absolute", top: 2, left: on ? 22 : 2, transition: "left .2s", boxShadow: "0 1px 4px rgba(0,0,0,.22)" }} />
   </div>
 );
-
-// ✅ NavBar: img → 동적 SVG 컴포넌트
-const NavBar = ({ active, go }) => {
-  const tabs = [{ id: "home", label: "Home" }, { id: "calendar", label: "Calendar" }, { id: "trends", label: "Trends" }, { id: "info", label: "Info" }];
-  const icons = {
-    home:     { default: HomeIcon,     active: HomeIconActive },
-    calendar: { default: CalendarIcon, active: CalendarIconActive },
-    trends:   { default: TrendIcon,    active: TrendIcon },
-    info:     { default: InfoIcon,     active: InfoIconActive },
-  };
-  return (
-    <div style={{ background: C.bg, borderTop: `1px solid ${C.border}`, flexShrink: 0, height: 88, display: "flex", alignItems: "flex-start", paddingTop: 15, justifyContent: "center", gap: 0 }}>
-      {tabs.map(t => {
-        const iconSrc = active === t.id ? icons[t.id].active : icons[t.id].default;
-        return (
-          <button key={t.id} onClick={() => go(t.id)} style={{ width: 44, border: "none", background: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: C.dark, opacity: active === t.id ? 1 : 0.35, transition: "opacity .2s", padding: 0, marginRight: t.id !== "info" ? 32 : 0 }}>
-            <img src={iconSrc} alt="" style={{ width: 32, height: 32, display: "block", pointerEvents: "none" }} />
-            <span style={{ fontSize: 10, fontFamily: "'DM Sans', sans-serif", color: C.dark, fontWeight: active === t.id ? 600 : 400 }}>{t.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-};
 
 const PainGrid = ({ label, value, set }) => {
   const lvls = ["None", "Mild", "Moderate", "Severe", "Extreme"];
@@ -415,9 +299,9 @@ const SliderRow = ({ label, value, set }) => (
 
 const ArticlePage = ({ title, body, back, heroImg, isPhoto = false }) => (
   <Scr scroll>
-    <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
+    <div style={{ height: SAFE_TOP_SPACER, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
     <div style={{ position: "relative", flexShrink: 0 }}>
-      <div style={{ height: 359, background: "white", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+      <div style={{ minHeight: 240, height: "clamp(240px, 42vh, 359px)", background: "white", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
         {heroImg && (
           <img src={heroImg} alt={title} style={{ width: "100%", height: "100%", objectFit: isPhoto ? "cover" : "contain", display: "block" }} />
         )}
@@ -433,18 +317,18 @@ const ArticlePage = ({ title, body, back, heroImg, isPhoto = false }) => (
   </Scr>
 );
 
-const GridMenu = ({ title, subtitle, items, back, cardW, cardH, topGap, gridGap = 12 }) => (
+const GridMenu = ({ title, subtitle, items, back, topGap, gridGap = 12 }) => (
   <Scr scroll>
-    <div style={{ padding: "104px 20px 0", flexShrink: 0, position: "sticky", top: 0, zIndex: 5, background: C.bg }}>
+    <div style={{ padding: `${SAFE_TOP} 20px 0`, flexShrink: 0, position: "sticky", top: 0, zIndex: 5, background: C.bg }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: subtitle ? 6 : 16 }}>
         <BackBtn go={back} />
         <h2 style={{ fontSize: 22, fontWeight: 700 }}>{title}</h2>
       </div>
       {subtitle && <p style={{ fontSize: 13, color: C.dark, padding: "0 0 14px", lineHeight: 1.65 }}>{subtitle}</p>}
     </div>
-    <div style={{ display: "grid", gridTemplateColumns: cardW ? `repeat(2, ${cardW}px)` : "1fr 1fr", justifyContent: cardW ? "center" : "initial", gap: gridGap, padding: `${topGap ?? 0}px 20px 60px` }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: gridGap, padding: `${topGap ?? 0}px 20px 60px` }}>
       {items.map((item) => (
-        <div key={item.label} onClick={item.go} style={{ background: "white", borderRadius: 16, padding: "22px 12px 18px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, border: `1.5px solid ${C.brown}33`, cursor: "pointer", ...(cardW ? { width: cardW, height: cardH, boxSizing: "border-box" } : {}) }}>
+        <div key={item.label} onClick={item.go} style={{ background: "white", borderRadius: 16, padding: "22px 12px 18px", minHeight: 133, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, border: `1.5px solid ${C.brown}33`, cursor: "pointer" }}>
           {item.Icon
             ? <img src={item.Icon} alt={item.label} style={{ width: 32, height: 32, display: "block" }} />
             : item.img
@@ -501,7 +385,7 @@ function RootinApp() {
   const tog = (arr, value) => arr?.includes(value) ? arr.filter(x => x !== value) : [...(arr || []), value];
 
   // Live scores for whatever is currently in `sd` (this round, in progress or just finished)
-  const godinResult = computeGodin(ud);
+  const _godinResult = computeGodin(ud);
   const isiResult = computeISI(sd);
   const cvdResult = computeCVD(sd);
   const hotflashResult = computeHotflash(sd);
@@ -539,10 +423,10 @@ function RootinApp() {
   /* ─── SPLASH ──────────────────────────────────────── */
   if (scr === "splash") return (
     <Scr style={{ alignItems: "center", justifyContent: "center" }}>
-      <Logo size={180} />
+      <div style={{ width: "min(180px, 48vw)", aspectRatio: "1" }}><Logo size="100%" /></div>
       <p style={{ fontSize: 28, fontWeight: 700, marginTop: 20, color: C.dark }}>rootin</p>
       <p style={{ fontSize: 14, color: C.gray, marginTop: 6 }}>Grow with your routine</p>
-      <div style={{ position: "absolute", bottom: 48, width: "80%" }}>
+      <div style={{ position: "absolute", bottom: SAFE_BOTTOM, width: "80%", maxWidth: 360 }}>
         <Button onClick={() => go("appExp")} color={C.green}>Get Started</Button>
       </div>
     </Scr>
@@ -557,8 +441,8 @@ function RootinApp() {
     ];
     return (
       <Scr>
-        <div style={{ flexShrink: 0, paddingTop: 84 }}>
-          <div style={{ height: 340, display: "flex", alignItems: "center", justifyContent: "center" }}><Sprout size={230} /></div>
+        <div style={{ flexShrink: 0, paddingTop: SAFE_TOP }}>
+          <div style={{ minHeight: 200, height: "clamp(200px, 38vh, 340px)", display: "flex", alignItems: "center", justifyContent: "center" }}><Sprout size="min(230px, 60vw)" /></div>
         </div>
         <div style={{ flex: 1, padding: "40px 28px 40px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
           <div>
@@ -577,7 +461,7 @@ function RootinApp() {
   /* ─── DATA CONSENT ────────────────────────────────── */
   if (scr === "dataConsent") return (
     <Scr scroll>
-      <div style={{ padding: "198px 24px 0" }}>
+      <div style={{ padding: `calc(${SAFE_TOP} + 50px) 24px 0` }}>
         <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 88, textAlign: "center" }}>Personal Data Consent</h2>
         <div style={{ height: 88, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 88 }}>
           <Logo size={88} />
@@ -591,7 +475,7 @@ function RootinApp() {
           <span style={{ fontSize: 13, lineHeight: 1.5 }}>I Agree to the Collection and Use of My Information</span>
         </div>
       </div>
-      <div style={{ padding: "16px 24px 40px" }}>
+      <div style={{ padding: `16px 24px ${SAFE_BOTTOM}` }}>
         <Button color={C.brown} onClick={() => agreed && go("surveyIntro")} disabled={!agreed}>Confirm</Button>
       </div>
     </Scr>
@@ -599,14 +483,14 @@ function RootinApp() {
 
   /* ─── SURVEY INTRO ────────────────────────────────── */
   if (scr === "surveyIntro") return (
-    <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: 60 }}>
+    <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: SAFE_TOP }}>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px" }}>
-        <img src={GrowBloom} alt="Rootin" style={{ width: 140, height: 140, objectFit: "contain" }} />
+        <img src={GrowBloom} alt="Rootin" style={{ width: "min(140px, 45vw)", height: "auto", aspectRatio: "1", objectFit: "contain" }} />
         <h2 style={{ fontSize: 24, fontWeight: 700, marginTop: 28, marginBottom: 12, textAlign: "center" }}>Hi, I'm Rootin.</h2>
         <p style={{ fontSize: 15, lineHeight: 1.75, textAlign: "center", marginBottom: 10 }}>Let's get to know you a little better. I'm here to support you and your daily routine.</p>
         <p style={{ fontSize: 13, color: C.gray }}>Your data is safe and stays with you.</p>
       </div>
-      <div style={{ padding: "16px 24px 44px", width: "100%" }}>
+      <div style={{ padding: `16px 24px ${SAFE_BOTTOM}`, width: "100%" }}>
         <Button color={C.brown} onClick={() => { setUStep(1); go("uSurvey"); }}>Confirm</Button>
       </div>
     </Scr>
@@ -624,15 +508,15 @@ function RootinApp() {
       if (uStep === 12 && ud.alcohol !== "Yes") { setUStep(10); return; } // mirror the skip when going back
       uStep > 1 ? setUStep(s => s - 1) : back();
     };
-    const Hdr = () => (
-      <div style={{ padding: "104px 20px 8px", flexShrink: 0, position: "sticky", top: 0, zIndex: 5, background: C.bg }}>
+    const renderHdr = () => (
+      <div style={{ padding: `${SAFE_TOP} 20px 8px`, flexShrink: 0, position: "sticky", top: 0, zIndex: 5, background: C.bg }}>
         <ProgBar v={uStep / total} />
         <BackBtn go={prev} />
       </div>
     );
 
     if (uStep === 1) return (
-      <Scr scroll key={uStep}><Hdr />
+      <Scr scroll key={uStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Tell us your information</h2>
           <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>Tell us your age</p>
@@ -650,7 +534,7 @@ function RootinApp() {
     );
 
     if (uStep === 2) return (
-      <Scr scroll key={uStep}><Hdr />
+      <Scr scroll key={uStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Tell us your information</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -665,7 +549,7 @@ function RootinApp() {
     );
 
     if (uStep === 3) return (
-      <Scr scroll key={uStep}><Hdr />
+      <Scr scroll key={uStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Tell us your information</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
@@ -682,7 +566,7 @@ function RootinApp() {
     );
 
     if (uStep === 4) return (
-      <Scr scroll key={uStep}><Hdr />
+      <Scr scroll key={uStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Age at breast cancer diagnosis</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -695,7 +579,7 @@ function RootinApp() {
     );
 
     if (uStep === 5) return (
-      <Scr scroll key={uStep}><Hdr />
+      <Scr scroll key={uStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>What kind of AI do you use for your medication?</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -707,7 +591,7 @@ function RootinApp() {
     );
 
     if (uStep === 6) return (
-      <Scr scroll key={uStep}><Hdr />
+      <Scr scroll key={uStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>When have you started taking AI for treatment?</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -729,14 +613,14 @@ function RootinApp() {
         ["Others", OthersIcon],
       ];
       return (
-        <Scr scroll key={uStep}><Hdr />
+        <Scr scroll key={uStep}>{renderHdr()}
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Select your comorbid conditions</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 173px)", justifyContent: "center", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
               {conds.map(([c, iconSrc]) => {
                 const on = (ud.comorbid || []).includes(c);
                 return (
-                  <div key={c} onClick={() => uu("comorbid", tog(ud.comorbid, c))} style={{ width: 173, height: 133, boxSizing: "border-box", background: "white", borderRadius: 16, padding: "20px 10px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, border: on ? `2px solid ${C.brown}` : `1px solid ${C.border}`, cursor: "pointer" }}>
+                  <div key={c} onClick={() => uu("comorbid", tog(ud.comorbid, c))} style={{ minHeight: 133, boxSizing: "border-box", width: "100%", background: "white", borderRadius: 16, padding: "20px 10px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, border: on ? `2px solid ${C.brown}` : `1px solid ${C.border}`, cursor: "pointer" }}>
                     <img src={iconSrc} alt={c} style={{ width: 30, height: 30, display: "block" }} />
                     <span style={{ fontSize: 13, fontWeight: 600, textAlign: "center" }}>{c}</span>
                   </div>
@@ -750,7 +634,7 @@ function RootinApp() {
     }
 
     if (uStep === 8) return (
-      <Scr scroll key={uStep}><Hdr />
+      <Scr scroll key={uStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Current general health compared to one year ago</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -762,7 +646,7 @@ function RootinApp() {
     );
 
     if (uStep === 9) return (
-      <Scr scroll key={uStep}><Hdr />
+      <Scr scroll key={uStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Current smoker?</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -774,7 +658,7 @@ function RootinApp() {
     );
 
     if (uStep === 10) return (
-      <Scr scroll key={uStep}><Hdr />
+      <Scr scroll key={uStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Drank alcohol at least once a month for 6 months or more</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -786,7 +670,7 @@ function RootinApp() {
     );
 
     if (uStep === 11) return (
-      <Scr scroll key={uStep}><Hdr />
+      <Scr scroll key={uStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>If yes, please indicate your frequency.</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -798,7 +682,7 @@ function RootinApp() {
     );
 
     if (uStep === 12) return (
-      <Scr scroll key={uStep}><Hdr />
+      <Scr scroll key={uStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Indicate your BMI</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -816,7 +700,7 @@ function RootinApp() {
         { key: "mild",  label: "MILD/LIGHT EXERCISE (MINIMAL EFFORT)",     desc: "e.g., yoga, archery, fishing from river bank, bowling, horseshoes, golf, snow–mobiling, easy walking" },
       ];
       return (
-        <Scr scroll key={uStep}><Hdr />
+        <Scr scroll key={uStep}>{renderHdr()}
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Godin Leisure – Time Exercise</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 20 }}>Enter number of times per week</p>
@@ -844,14 +728,14 @@ function RootinApp() {
 
   /* ─── SYMPTOMS SURVEY INTRO ───────────────────────── */
   if (scr === "symSurveyIntro") return (
-    <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: 60 }}>
+    <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: SAFE_TOP }}>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px" }}>
-        <img src={GrowBloom} alt="Rootin" style={{ width: 140, height: 140, objectFit: "contain" }} />
+        <img src={GrowBloom} alt="Rootin" style={{ width: "min(140px, 45vw)", height: "auto", aspectRatio: "1", objectFit: "contain" }} />
         <h2 style={{ fontSize: 22, fontWeight: 700, marginTop: 28, marginBottom: 12, textAlign: "center" }}>Let's start your symptom survey.</h2>
         <p style={{ fontSize: 15, lineHeight: 1.7, textAlign: "center", marginBottom: 8 }}>I'm here to support you.</p>
         <p style={{ fontSize: 13, color: C.gray }}>Your data is safe and stays with you.</p>
       </div>
-      <div style={{ padding: "16px 24px 44px", width: "100%" }}>
+      <div style={{ padding: `16px 24px ${SAFE_BOTTOM}`, width: "100%" }}>
         <Button color={C.brown} onClick={() => { setSStep(1); go("sSurvey"); }}>Confirm</Button>
       </div>
     </Scr>
@@ -874,8 +758,8 @@ function RootinApp() {
       go("symDone");
     };
     const prev = () => sStep > 1 ? setSStep(s => s - 1) : back();
-    const Hdr = () => (
-      <div style={{ padding: "104px 20px 8px", flexShrink: 0, position: "sticky", top: 0, zIndex: 5, background: C.bg }}>
+    const renderHdr = () => (
+      <div style={{ padding: `${SAFE_TOP} 20px 8px`, flexShrink: 0, position: "sticky", top: 0, zIndex: 5, background: C.bg }}>
         <ProgBar v={sStep / total} />
         <BackBtn go={prev} />
       </div>
@@ -884,7 +768,7 @@ function RootinApp() {
     if (sStep === 1) {
       const opts = ["Diabetes","Cardiovascular Disease","Depression","Hypertension","Osteoporosis"];
       return (
-        <Scr scroll key={sStep}><Hdr />
+        <Scr scroll key={sStep}>{renderHdr()}
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>What symptoms would you like to track?</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 20, lineHeight: 1.6 }}>Select the symptoms you experience most frequently, you can always add more later.</p>
@@ -900,7 +784,7 @@ function RootinApp() {
     if (sStep === 2) {
       const items = ["Work","Social activities","Leisure activities","Sleep","Mood","Concentration","Relations with others","Sexuality","Enjoyment of life","Overall quality of life"];
       return (
-        <Scr scroll key={sStep}><Hdr />
+        <Scr scroll key={sStep}>{renderHdr()}
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6, lineHeight: 1.35 }}>Hot flash–Related Daily Interference Scale</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 16, lineHeight: 1.6 }}>Choose a level from "Do not interfere" to "Completely interfere."</p>
@@ -914,7 +798,7 @@ function RootinApp() {
     if (sStep === 3) {
       const items = ["Walking on a flat surface","Going up and down stairs","At night while in bed, pain disturbs your sleep","Sitting or lying","Standing upright"];
       return (
-        <Scr scroll key={sStep}><Hdr />
+        <Scr scroll key={sStep}>{renderHdr()}
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Joint Pain</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 6, lineHeight: 1.6 }}>Think about the pain you felt in your hip and knee during the last 48 hours.</p>
@@ -927,7 +811,7 @@ function RootinApp() {
     }
 
     if (sStep === 4) return (
-      <Scr scroll key={sStep}><Hdr />
+      <Scr scroll key={sStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Joint Pain</h2>
           <p style={{ fontSize: 13, color: C.gray, marginBottom: 18, lineHeight: 1.65 }}>Think about the stiffness (not pain) you have in your hip and knee during the last 48 hours.</p>
@@ -941,7 +825,7 @@ function RootinApp() {
     if (sStep === 5) {
       const items = ["Descending stairs","Ascending stairs","Rising from sitting","Standing","Bending to the floor","Walking on flat surfaces","Getting in and out of a car, or on or off a bus"];
       return (
-        <Scr scroll key={sStep}><Hdr />
+        <Scr scroll key={sStep}>{renderHdr()}
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Joint Pain</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 6, lineHeight: 1.65 }}>Think about the difficulty due to your hip and knee during the last 48 hours.</p>
@@ -956,7 +840,7 @@ function RootinApp() {
     if (sStep === 6) {
       const items = ["Going shopping","Putting on your socks or stockings","Rising from the bed","Taking off your socks or stockings","Lying in bed","Getting in or out of the bath","Sitting","Getting on or off the toilet","Performance heavy domestic duties","Performing light domestic duties"];
       return (
-        <Scr scroll key={sStep}><Hdr />
+        <Scr scroll key={sStep}>{renderHdr()}
           <div style={{ padding: "0 20px 24px" }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Joint Pain</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 6, lineHeight: 1.65 }}>Think about the difficulty due to your hip and knee during the last 48 hours.</p>
@@ -979,7 +863,7 @@ function RootinApp() {
         { k: "isi_stand", label: "Standing upright",              lvls: ["None","Mild","Moderate","Severe","Extreme"] },
       ];
       return (
-        <Scr scroll key={sStep}><Hdr />
+        <Scr scroll key={sStep}>{renderHdr()}
           <div style={{ padding: "0 20px 20px" }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Insomnia Severity Index</h2>
             <p style={{ fontSize: 13, color: C.gray, marginBottom: 32, lineHeight: 1.6 }}>Please rate the current (i.e., last 2 weeks) SEVERITY of your insomnia problem(s).</p>
@@ -1019,10 +903,10 @@ function RootinApp() {
       const lvls = ["Not at all","A Little","Somewhat","Much","Very Much"];
       const isi = isiResult;
       return (
-        <Scr scroll key={sStep}><Hdr />
+        <Scr scroll key={sStep}>{renderHdr()}
           <div style={{ padding: "0 20px 32px" }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Insomnia Severity Index</h2>
-            {impactItems.map(({ k, label }, idx) => (
+            {impactItems.map(({ k, label }) => (
               <div key={k} style={{ marginBottom: 32 }}>
                 <p style={{ fontSize: 13, color: C.dark, marginBottom: 16, lineHeight: 1.5 }}>{label}</p>
                 <div style={{ display: "flex", gap: 5 }}>
@@ -1057,7 +941,7 @@ function RootinApp() {
 
     // CVD Risk Prediction (General CVD, BMI-based, D'Agostino 2008) — validated cutoff, shown live
     if (sStep === 9) return (
-      <Scr scroll key={sStep}><Hdr />
+      <Scr scroll key={sStep}>{renderHdr()}
         <div style={{ padding: "0 20px 24px" }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>CVD Risk Prediction</h2>
           <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>Sex</p>
@@ -1100,18 +984,18 @@ function RootinApp() {
   if (scr === "charName") {
     const names = ["Sprout","Bloom","Petal","Leaf","Fern","Clover","Moss","Sage","Willow","Ivy","Cedar","Thistle"];
     return (
-      <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: 60 }}>
+      <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: SAFE_TOP }}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 28px" }}>
           <h2 style={{ fontSize: 26, fontWeight: 700, textAlign: "center", marginBottom: 6 }}>You planted a seed!</h2>
           <p style={{ fontSize: 14, color: C.gray, marginBottom: 28, textAlign: "center" }}>Name your little sprout!</p>
-          <img src={GrowSeed} alt="Seed planted" style={{ width: 160, height: 160, objectFit: "contain" }} />
+          <img src={GrowSeed} alt="Seed planted" style={{ width: "min(160px, 50vw)", height: "auto", aspectRatio: "1", objectFit: "contain" }} />
           <div style={{ width: "100%", marginTop: 28, marginBottom: 14 }}><TextInput placeholder="Name" value={inp} onChange={setInp} /></div>
           <div style={{ display: "flex", gap: 12, width: "100%" }}>
             <GhostBtn style={{ flex: 1 }} onClick={() => { const n = (ni + 1) % names.length; setNi(n); setInp(names[n]); }}>Shuffle</GhostBtn>
             <Button style={{ flex: 1 }} color={C.green} onClick={() => setCharName(inp)}>Save</Button>
           </div>
         </div>
-        <div style={{ padding: "16px 24px 44px", width: "100%" }}>
+        <div style={{ padding: `16px 24px ${SAFE_BOTTOM}`, width: "100%" }}>
           <Button color={C.green} onClick={() => go("charAdapt")}>Next</Button>
         </div>
       </Scr>
@@ -1120,13 +1004,13 @@ function RootinApp() {
 
   /* ─── CHARACTER ADAPT ─────────────────────────────── */
   if (scr === "charAdapt") return (
-    <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: 60 }}>
+    <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: SAFE_TOP }}>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px" }}>
         <h2 style={{ fontSize: 22, fontWeight: 700, textAlign: "center", marginBottom: 32, lineHeight: 1.4 }}>Let Rootin take root in your routine.</h2>
-        <img src={GrowSeed} alt="Seed planted" style={{ width: 170, height: 170, objectFit: "contain" }} />
+        <img src={GrowSeed} alt="Seed planted" style={{ width: "min(170px, 50vw)", height: "auto", aspectRatio: "1", objectFit: "contain" }} />
         <p style={{ fontSize: 14, color: C.gray, marginTop: 28, textAlign: "center" }}>The more you track, the stronger it grows with you.</p>
       </div>
-      <div style={{ padding: "16px 24px 44px", width: "100%" }}>
+      <div style={{ padding: `16px 24px ${SAFE_BOTTOM}`, width: "100%" }}>
         <Button color={C.green} onClick={() => { setIsSetup(false); setDayCount(1); go("symDone"); }}>Next</Button>
       </div>
     </Scr>
@@ -1134,13 +1018,13 @@ function RootinApp() {
 
   /* ─── GROWTH: SPROUT (2nd completed survey) ───────── */
   if (scr === "growthSprout") return (
-    <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: 60 }}>
+    <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: SAFE_TOP }}>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px" }}>
         <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: "center", marginBottom: 6 }}>{charName} sprouted!</h2>
         <p style={{ fontSize: 14, color: C.gray, marginBottom: 28, textAlign: "center" }}>Two surveys in — your routine is taking root.</p>
-        <img src={GrowSprout} alt="Sprouted" style={{ width: 170, height: 170, objectFit: "contain" }} />
+        <img src={GrowSprout} alt="Sprouted" style={{ width: "min(170px, 50vw)", height: "auto", aspectRatio: "1", objectFit: "contain" }} />
       </div>
-      <div style={{ padding: "16px 24px 44px", width: "100%" }}>
+      <div style={{ padding: `16px 24px ${SAFE_BOTTOM}`, width: "100%" }}>
         <Button color={C.green} onClick={() => { setSStep(1); setHist([]); setScr("home"); }}>Next</Button>
       </div>
     </Scr>
@@ -1151,14 +1035,14 @@ function RootinApp() {
     const justAdded = collection[collection.length - 1];
     const img = justAdded !== undefined ? VAR_IMAGES[justAdded] : RootinGood1;
     return (
-      <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: 60 }}>
+      <Scr style={{ alignItems: "center", justifyContent: "space-between", paddingTop: SAFE_TOP }}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 32px" }}>
           <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: "center", marginBottom: 6 }}>A new Rootin joined your collection!</h2>
           <p style={{ fontSize: 14, color: C.gray, marginBottom: 28, textAlign: "center" }}>Keep checking in to collect them all.</p>
-          <img src={img} alt="New Rootin" style={{ width: 170, height: 170, objectFit: "contain" }} />
+          <img src={img} alt="New Rootin" style={{ width: "min(170px, 50vw)", height: "auto", aspectRatio: "1", objectFit: "contain" }} />
           <p style={{ fontSize: 13, color: C.gray, marginTop: 16 }}>{collection.length} of {VAR_IMAGES.length} collected</p>
         </div>
-        <div style={{ padding: "16px 24px 44px", width: "100%", display: "flex", gap: 12 }}>
+        <div style={{ padding: `16px 24px ${SAFE_BOTTOM}`, width: "100%", display: "flex", gap: 12 }}>
           <GhostBtn style={{ flex: 1 }} onClick={() => { setSStep(1); setHist([]); go("rootinColl"); }}>View Collection</GhostBtn>
           <Button style={{ flex: 1 }} color={C.green} onClick={() => { setSStep(1); setHist([]); setScr("home"); }}>Next</Button>
         </div>
@@ -1169,7 +1053,7 @@ function RootinApp() {
   /* ─── HOME ────────────────────────────────────────── */
   if (scr === "home") return (
     <ScrWithNav activeTab={tab} navGo={navTab}>
-      <div style={{ padding: "104px 20px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ padding: `${SAFE_TOP} 20px 12px`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", gap: 16 }}>
           {/* ✅ UserIcon, DataIcon: img → SVG 컴포넌트 */}
           <button onClick={() => go("myPage")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}>
@@ -1189,7 +1073,7 @@ function RootinApp() {
         <h2 style={{ fontSize: 26, fontWeight: 700, marginTop: 2 }}>Health Check-in</h2>
       </div>
       <div style={{ margin: "0 20px 16px", background: "white", borderRadius: 22, padding: "20px 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: `1px solid ${C.border}` }}>
-        <img src={growthImage(dayCount, latestMood, history.length)} alt="Rootin" style={{ width: 256, height: 256, objectFit: "contain" }} />
+        <img src={growthImage(dayCount, latestMood, history.length)} alt="Rootin" style={{ width: "100%", maxWidth: 256, height: "auto", aspectRatio: "1", objectFit: "contain" }} />
         <p style={{ fontSize: 12, color: C.gray, marginTop: 8, textTransform: "capitalize" }}>{growthStage} · {history.length} check-in{history.length === 1 ? "" : "s"}</p>
       </div>
       <div style={{ margin: "0 20px 12px" }}>
@@ -1225,11 +1109,11 @@ function RootinApp() {
   /* ─── SYMPTOM LOG COMPLETE ────────────────────────── */
   if (scr === "symDone") return (
     <Scr style={{ alignItems: "center" }}>
-      <button onClick={() => { setHist([]); setScr("home"); }} style={{ position: "absolute", top: 104, right: 24, background: "transparent", border: "none", padding: 0, width: 20, height: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><img src={XIcon} alt="" style={{ width: 20, height: 20 }} /></button>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "160px 20px 0", width: "100%" }}>
+      <button onClick={() => { setHist([]); setScr("home"); }} style={{ position: "absolute", top: SAFE_TOP, right: 24, background: "transparent", border: "none", padding: 0, width: 20, height: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><img src={XIcon} alt="" style={{ width: 20, height: 20 }} /></button>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: `calc(${SAFE_TOP} + 16px) 20px 0`, width: "100%" }}>
         <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 44, textAlign: "center" }}>DAY {dayCount} Rooted!</h2>
-        <div style={{ width: 140, height: 140, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 44 }}>
-          <img src={growthImage(dayCount, latestMood, history.length)} alt="Rootin" style={{ width: 140, height: 140, objectFit: "contain" }} />
+        <div style={{ width: "min(140px, 45vw)", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 44 }}>
+          <img src={growthImage(dayCount, latestMood, history.length)} alt="Rootin" style={{ width: "min(140px, 45vw)", height: "auto", aspectRatio: "1", objectFit: "contain" }} />
         </div>
         <p style={{ fontSize: 14, color: C.gray, marginBottom: 44, textAlign: "center", lineHeight: 1.7 }}>One small root today.<br />Let's grow again tomorrow.</p>
         <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -1239,7 +1123,7 @@ function RootinApp() {
               ? { l: "CVD 10-yr risk", v: `${lastRecord.cvd.capped ? ">30" : lastRecord.cvd.pct.toFixed(1)}%`, s: lastRecord.cvd.level.label }
               : { l: "Hot flash interference", v: `${lastRecord.hotflash.avg.toFixed(1)}/10`, s: lastRecord.hotflash.avg >= 5 ? "High interference" : "Low–moderate" },
           ].map((e, i) => (
-            <div key={i} style={{ height: 112, boxSizing: "border-box", background: "white", borderRadius: 16, padding: "18px 20px", border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div key={i} style={{ minHeight: 112, boxSizing: "border-box", background: "white", borderRadius: 16, padding: "18px 20px", border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                 <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#555", flexShrink: 0 }} />
                 <span style={{ fontSize: 15, fontWeight: 500 }}>{e.l}&nbsp;&nbsp;<strong>{e.v}</strong></span>
@@ -1252,7 +1136,7 @@ function RootinApp() {
           ))}
         </div>
       </div>
-      <div style={{ padding: "20px 20px 44px", width: "100%" }}>
+      <div style={{ padding: `20px 20px ${SAFE_BOTTOM}`, width: "100%" }}>
         <Button color={C.dark} onClick={() => { setHist([]); setScr("home"); }}>Next</Button>
       </div>
     </Scr>
@@ -1261,7 +1145,7 @@ function RootinApp() {
   /* ─── SETTINGS ────────────────────────────────────── */
   if (scr === "settings") return (
     <Scr scroll>
-      <div style={{ padding: "104px 20px 12px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+      <div style={{ padding: `${SAFE_TOP} 20px 12px`, display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
         <BackBtn go={back} />
         <h2 style={{ fontSize: 22, fontWeight: 700 }}>Settings</h2>
       </div>
@@ -1310,7 +1194,7 @@ function RootinApp() {
           </div>
         </div>
       </div>
-      <div style={{ padding: "24px 20px 44px" }}>
+      <div style={{ padding: `24px 20px ${SAFE_BOTTOM}` }}>
         <Button color={C.dark} onClick={() => {}}>＋  Add Reminder</Button>
       </div>
     </Scr>
@@ -1325,7 +1209,7 @@ function RootinApp() {
       : ["Doctor appointment today","Upcoming appointment check","Schedule your next visit","Appointment reminder"];
     return (
       <Scr scroll>
-        <div style={{ padding: "104px 20px 12px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+        <div style={{ padding: `${SAFE_TOP} 20px 12px`, display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
           <BackBtn go={back} />
           <h2 style={{ fontSize: 22, fontWeight: 700 }}>{remType}</h2>
         </div>
@@ -1358,13 +1242,13 @@ function RootinApp() {
             <p style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Repeats</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {repeats.map(r => (
-                <button key={r} onClick={() => setRemRepeat(rp => ({ ...rp, [key]: r }))} style={{ padding: "10px 18px", borderRadius: 100, border: `1.5px solid ${remRepeat[key] === r ? C.green : C.border}`, background: remRepeat[key] === r ? C.green : "white", color: remRepeat[key] === r ? "white" : C.dark, fontSize: 14, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>{r}</button>
+                <button key={r} onClick={() => setRemRepeat(rp => ({ ...rp, [key]: r }))} style={{ padding: "10px 18px", borderRadius: 100, border: `1.5px solid ${remRepeat[key] === r ? C.green : C.border}`, background: remRepeat[key] === r ? C.green : "white", color: remRepeat[key] === r ? "white" : C.dark, fontSize: 14, fontWeight: 500, fontFamily: FONT_FAMILY, cursor: "pointer" }}>{r}</button>
               ))}
             </div>
           </div>
         </div>
-        <div style={{ padding: "28px 20px 44px" }}>
-          <button onMouseDown={() => setBtnActive(true)} onMouseUp={() => setBtnActive(false)} onMouseLeave={() => setBtnActive(false)} onTouchStart={() => setBtnActive(true)} onTouchEnd={() => setBtnActive(false)} onClick={() => {}} style={{ width: "100%", padding: "16px 20px", borderRadius: 100, border: `1.5px dashed ${C.dark}`, background: btnActive ? C.dark : "transparent", color: btnActive ? "white" : C.dark, fontSize: 17, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        <div style={{ padding: `28px 20px ${SAFE_BOTTOM}` }}>
+          <button onMouseDown={() => setBtnActive(true)} onMouseUp={() => setBtnActive(false)} onMouseLeave={() => setBtnActive(false)} onTouchStart={() => setBtnActive(true)} onTouchEnd={() => setBtnActive(false)} onClick={() => {}} style={{ width: "100%", padding: "16px 20px", borderRadius: 100, border: `1.5px dashed ${C.dark}`, background: btnActive ? C.dark : "transparent", color: btnActive ? "white" : C.dark, fontSize: 17, fontWeight: 600, fontFamily: FONT_FAMILY, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/></svg>
             Add Reminder
           </button>
@@ -1376,13 +1260,13 @@ function RootinApp() {
   /* ─── MY PAGE ─────────────────────────────────────── */
   if (scr === "myPage") return (
     <Scr scroll>
-      <div style={{ padding: "104px 20px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ padding: `${SAFE_TOP} 20px 12px`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <BackBtn go={back} />
-        <button onClick={() => go("myData")} style={{ background: C.lightGray, border: "none", borderRadius: 10, padding: "7px 16px", cursor: "pointer", fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>Edit</button>
+        <button onClick={() => go("myData")} style={{ background: C.lightGray, border: "none", borderRadius: 10, padding: "7px 16px", cursor: "pointer", fontSize: 14, fontWeight: 600, fontFamily: FONT_FAMILY }}>Edit</button>
       </div>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 20px 20px" }}>
-        <div style={{ width: 140, height: 140, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-          <img src={GrowBloom} alt="Rootin" style={{ width: 140, height: 140, objectFit: "contain" }} />
+        <div style={{ width: "min(140px, 45vw)", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+          <img src={GrowBloom} alt="Rootin" style={{ width: "min(140px, 45vw)", height: "auto", aspectRatio: "1", objectFit: "contain" }} />
         </div>
         <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Alex</h2>
         <p style={{ fontSize: 13, color: C.gray, marginBottom: 18 }}>Joined on 28 August 2025</p>
@@ -1411,7 +1295,7 @@ function RootinApp() {
     const chars = VAR_IMAGES.map((img, i) => ({ name: `Rootin ${i + 1}`, img, unlocked: collection.includes(i) }));
     return (
       <Scr scroll>
-        <div style={{ padding: "104px 20px 12px", display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ padding: `${SAFE_TOP} 20px 12px`, display: "flex", alignItems: "center", gap: 10 }}>
           <BackBtn go={back} />
           <h2 style={{ fontSize: 22, fontWeight: 700 }}>Rootin Collection</h2>
         </div>
@@ -1420,8 +1304,8 @@ function RootinApp() {
           {chars.map((c, i) => (
             <div key={i} onClick={() => { if (c.unlocked) { setSelectedChar(i); go("rootinDetail"); } }} style={{ background: "white", borderRadius: 16, padding: "22px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, border: `1px solid ${C.border}`, cursor: c.unlocked ? "pointer" : "default", opacity: c.unlocked ? 1 : 0.4 }}>
               {c.img
-                ? <img src={c.img} alt={c.name} style={{ width: 80, height: 80, objectFit: "contain", filter: c.unlocked ? "none" : "grayscale(100%)" }} />
-                : <div style={{ width: 80, height: 80, borderRadius: 12, background: C.lightGray }} />
+                ? <img src={c.img} alt={c.name} style={{ width: "min(80px, 22vw)", height: "auto", aspectRatio: "1", objectFit: "contain", filter: c.unlocked ? "none" : "grayscale(100%)" }} />
+                : <div style={{ width: "min(80px, 22vw)", aspectRatio: "1", borderRadius: 12, background: C.lightGray }} />
               }
               <p style={{ fontSize: 13, fontWeight: 600 }}>{c.name}</p>
             </div>
@@ -1436,11 +1320,11 @@ function RootinApp() {
     const varImg = VAR_IMAGES[selectedChar] || VAR_IMAGES[0];
     return (
       <Scr scroll>
-        <div style={{ padding: "104px 20px 0" }}>
+        <div style={{ padding: `${SAFE_TOP} 20px 0` }}>
           <BackBtn go={back} />
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "88px 24px 48px", textAlign: "center" }}>
-          <img src={varImg} alt="Rootin character" style={{ width: 256, height: 256, objectFit: "contain" }} />
+          <img src={varImg} alt="Rootin character" style={{ width: "100%", maxWidth: 256, height: "auto", aspectRatio: "1", objectFit: "contain" }} />
           <h2 style={{ fontSize: 22, fontWeight: 700, marginTop: 88, marginBottom: 20 }}>Rootin {selectedChar + 1}</h2>
           <p style={{ fontSize: 14, color: C.gray, lineHeight: 1.75 }}>A Rootin born from your balanced health.<br />Its bright leaves glow with vitality, reflecting the strength of your routine.</p>
         </div>
@@ -1450,7 +1334,7 @@ function RootinApp() {
 
   if (scr === "myData") return (
     <Scr scroll>
-      <div style={{ padding: "104px 20px 12px", display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ padding: `${SAFE_TOP} 20px 12px`, display: "flex", alignItems: "center", gap: 10 }}>
         <BackBtn go={back} />
         <h2 style={{ fontSize: 22, fontWeight: 700 }}>My Data</h2>
       </div>
@@ -1481,9 +1365,9 @@ function RootinApp() {
     const entries = (entriesMap[af] || []).slice().reverse();
     return (
       <ScrWithNav activeTab={tab} navGo={navTab}>
-        <div style={{ padding: "104px 20px 8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ padding: `${SAFE_TOP} 20px 8px`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ fontSize: 24, fontWeight: 700 }}>Moments</h2>
-          <button style={{ background: C.lightGray, border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", color: C.dark }}>Export ↑</button>
+          <button style={{ background: C.lightGray, border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: FONT_FAMILY, color: C.dark }}>Export ↑</button>
         </div>
         {/* ✅ ArrowLeft, ArrowRight: img → SVG 컴포넌트 */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 20px" }}>
@@ -1497,7 +1381,7 @@ function RootinApp() {
         </div>
         <div style={{ display: "flex", gap: 8, padding: "0 20px 16px", overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
           {filters.map(f => (
-            <button key={f} onClick={() => setAf(f)} style={{ padding: "9px 16px", borderRadius: 100, border: "none", flexShrink: 0, background: af === f ? C.dark : C.lightGray, color: af === f ? "white" : C.dark, fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>{f}</button>
+            <button key={f} onClick={() => setAf(f)} style={{ padding: "9px 16px", borderRadius: 100, border: "none", flexShrink: 0, background: af === f ? C.dark : C.lightGray, color: af === f ? "white" : C.dark, fontSize: 13, fontWeight: 500, fontFamily: FONT_FAMILY, cursor: "pointer" }}>{f}</button>
           ))}
         </div>
         <div style={{ padding: "0 20px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1544,11 +1428,11 @@ function RootinApp() {
     const amberDays = Object.keys(moodByDay).filter(d => moodByDay[d] === "moderate").map(Number);
     return (
       <ScrWithNav activeTab={tab} navGo={navTab}>
-        <div style={{ padding: "104px 20px 0 32px" }}>
+        <div style={{ padding: `${SAFE_TOP} 20px 0 32px` }}>
           <h2 style={{ fontSize: 24, fontWeight: 700, lineHeight: 1 }}>Calendar</h2>
           <p style={{ fontSize: 13, color: C.gray, marginTop: 2 }}>See your progress</p>
         </div>
-        <div style={{ width: 362, height: 524, margin: "32px auto 20px", background: "white", borderRadius: 22, padding: "18px 16px 24px", border: `1px solid ${C.border}`, boxSizing: "border-box", overflow: "hidden" }}>
+        <div style={{ width: "auto", margin: "32px 20px 20px", background: "white", borderRadius: 22, padding: "18px 16px 24px", border: `1px solid ${C.border}`, boxSizing: "border-box", overflow: "hidden" }}>
           {/* ✅ ArrowLeft, ArrowRight: img → SVG 컴포넌트 */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
             <button style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
@@ -1562,11 +1446,11 @@ function RootinApp() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: 10 }}>
             {days.map((d, i) => <div key={i} style={{ textAlign: "center", fontSize: 12, color: C.gray, fontWeight: 500, padding: "4px 0" }}>{d}</div>)}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", rowGap: 64, columnGap: 5 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", rowGap: 10, columnGap: 5 }}>
             {cells.map((day, i) => {
               const isG = day && greenDays.includes(day), isR = day && redDays.includes(day), isA = day && amberDays.includes(day);
               const bg = isG ? C.green : isR ? C.red : isA ? "#C98A2E" : day ? C.lightGray : "transparent";
-              return <div key={i} style={{ width: 30, height: 30, justifySelf: "center", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: bg, fontSize: 12, color: (isG || isR || isA) ? "white" : day ? C.dark : "transparent", fontWeight: day ? 500 : 400 }}>{day || ""}</div>;
+              return <div key={i} style={{ width: "100%", maxWidth: 40, aspectRatio: "1", justifySelf: "center", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: bg, fontSize: 12, color: (isG || isR || isA) ? "white" : day ? C.dark : "transparent", fontWeight: day ? 500 : 400 }}>{day || ""}</div>;
             })}
           </div>
         </div>
@@ -1576,7 +1460,7 @@ function RootinApp() {
 
   /* ─── TRENDS ──────────────────────────────────────── */
   if (scr === "trends") {
-    const W = 306, H = 170;
+    const W = 306, H = 170; // viewBox units — SVG scales to container width
     // Real per-round values, scaled onto the same 0–H axis: ISI (0–28), hot flash
     // interference (0–10 → ×2.8), CVD risk (0–30% → ×5.67). No data persists, so
     // this only ever reflects the check-ins completed in this session.
@@ -1597,26 +1481,26 @@ function RootinApp() {
       labels: labels.length ? labels : [""], bw: 10, gap: 3,
     };
     const mkPath = pts => { let p = `M ${pts[0][0]} ${pts[0][1]}`; for (let i = 1; i < pts.length; i++) { const t = 0.35, dx = pts[i][0]-pts[i-1][0]; p += ` C ${pts[i-1][0]+dx*t} ${pts[i-1][1]}, ${pts[i][0]-dx*t} ${pts[i][1]}, ${pts[i][0]} ${pts[i][1]}`; } return p; };
-    const PillToggle = ({ opts, value, set }) => (
+    const renderPillToggle = ({ opts, value, set }) => (
       <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-        {opts.map(o => <button key={o} onClick={() => set(o)} style={{ flex: 1, padding: "12px 0", borderRadius: 100, background: value===o ? "#3A3A3A" : C.lightGray, color: value===o ? "white" : C.dark, border: "none", fontSize: 14, fontWeight: value===o ? 600 : 400, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>{o}</button>)}
+        {opts.map(o => <button key={o} onClick={() => set(o)} style={{ flex: 1, padding: "12px 0", borderRadius: 100, background: value===o ? "#3A3A3A" : C.lightGray, color: value===o ? "white" : C.dark, border: "none", fontSize: 14, fontWeight: value===o ? 600 : 400, fontFamily: FONT_FAMILY, cursor: "pointer" }}>{o}</button>)}
       </div>
     );
     const gridYs = [0, Math.round(H*0.33), Math.round(H*0.66), H];
     return (
       <ScrWithNav activeTab={tab} navGo={navTab}>
         <style>{`@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }`}</style>
-        <div style={{ padding: "104px 20px 14px 32px" }}>
+        <div style={{ padding: `${SAFE_TOP} 20px 14px 32px` }}>
           <h2 style={{ fontSize: 24, fontWeight: 700 }}>Symptom Trends</h2>
         </div>
-        <div style={{ padding: "0 15.5px 20px" }}>
-          <PillToggle opts={["Week","Month","Quarter"]} value={period} set={setPeriod} />
-          <PillToggle opts={["Line Chart","Bar Chart"]} value={cType} set={setCType} />
-          <div style={{ width: 362, height: 308, background: "white", borderRadius: 18, padding: 28, border: `1px solid ${C.border}`, marginBottom: 14, boxSizing: "border-box", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+        <div style={{ padding: "0 20px 20px" }}>
+          {renderPillToggle({ opts: ["Week","Month","Quarter"], value: period, set: setPeriod })}
+          {renderPillToggle({ opts: ["Line Chart","Bar Chart"], value: cType, set: setCType })}
+          <div style={{ width: "100%", minHeight: 280, background: "white", borderRadius: 18, padding: 28, border: `1px solid ${C.border}`, marginBottom: 14, boxSizing: "border-box", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
             {!rounds.length && (
               <p style={{ fontSize: 13, color: C.gray, textAlign: "center", marginTop: 70 }}>Complete a symptom survey to see your trends here.</p>
             )}
-            {!!rounds.length && <svg key={`${period}-${cType}`} width={W} height={208} viewBox={`0 0 ${W} ${H + 20}`} style={{ display: "block", overflow: "visible", animation: "fadeIn .35s ease-in" }}>
+            {!!rounds.length && <svg key={`${period}-${cType}`} width="100%" height={208} viewBox={`0 0 ${W} ${H + 20}`} preserveAspectRatio="xMidYMid meet" style={{ display: "block", overflow: "visible", animation: "fadeIn .35s ease-in" }}>
               {gridYs.map(y => <line key={y} x1="0" y1={y} x2={W} y2={y} stroke={C.border} strokeWidth="0.7" strokeDasharray="4 3"/>)}
               {cType === "Line Chart" ? (<>
                 <path d={mkPath(d.p1)} fill="none" stroke={C.dark}  strokeWidth="2.2" strokeLinecap="round"/>
@@ -1654,7 +1538,7 @@ function RootinApp() {
   /* ─── HELPFUL INFO ────────────────────────────────── */
   if (scr === "helpfulInfo") return (
     <ScrWithNav activeTab={tab} navGo={navTab}>
-      <div style={{ padding: "104px 20px 32px" }}>
+      <div style={{ padding: `${SAFE_TOP} 20px 32px` }}>
         <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>Helpful Information</h2>
         <p style={{ fontSize: 14, color: C.gray }}>Discover helpful information to support your journey.</p>
       </div>
@@ -1675,10 +1559,10 @@ function RootinApp() {
   /* ─── BASIC INFO ──────────────────────────────────── */
   if (scr === "basicInfo") return (
     <Scr scroll>
-      <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
+      <div style={{ height: SAFE_TOP_SPACER, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <div style={{ height: 382, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <img src={GrowBloom} alt="Rootin" style={{ width: 270, height: 270, objectFit: "contain" }} />
+        <div style={{ minHeight: 240, height: "clamp(240px, 44vh, 382px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <img src={GrowBloom} alt="Rootin" style={{ width: "min(270px, 70vw)", height: "auto", aspectRatio: "1", objectFit: "contain" }} />
         </div>
         <BackBtn go={back} overlay />
       </div>
@@ -1699,9 +1583,9 @@ function RootinApp() {
   /* ─── BREAST CANCER SUMMARY ───────────────────────── */
   if (scr === "bcSummary") return (
     <Scr scroll>
-      <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
+      <div style={{ height: SAFE_TOP_SPACER, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <div style={{ height: 359, overflow: "hidden" }}>
+        <div style={{ minHeight: 240, height: "clamp(240px, 42vh, 359px)", overflow: "hidden" }}>
           <img src={BreastCancerIllustration} alt="Breast Cancer" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 80%", display: "block" }} />
         </div>
         <BackBtn go={back} overlay />
@@ -1720,9 +1604,9 @@ function RootinApp() {
   /* ─── AI SUMMARY ──────────────────────────────────── */
   if (scr === "aiSummary") return (
     <Scr scroll>
-      <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
+      <div style={{ height: SAFE_TOP_SPACER, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <div style={{ height: 359, overflow: "hidden" }}>
+        <div style={{ minHeight: 240, height: "clamp(240px, 42vh, 359px)", overflow: "hidden" }}>
           <img src={AIIllustration} alt="Aromatase Inhibitor" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         </div>
         <BackBtn go={back} overlay />
@@ -1741,9 +1625,9 @@ function RootinApp() {
   /* ─── ARTICLE: BREAST CANCER ──────────────────────── */
   if (scr === "articleBC") return (
     <Scr scroll>
-      <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
+      <div style={{ height: SAFE_TOP_SPACER, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <div style={{ height: 359, overflow: "hidden" }}>
+        <div style={{ minHeight: 240, height: "clamp(240px, 42vh, 359px)", overflow: "hidden" }}>
           <img src={BreastCancerIllustration} alt="Breast Cancer" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 80%", display: "block" }} />
         </div>
         <BackBtn go={back} overlay />
@@ -1760,9 +1644,9 @@ function RootinApp() {
   /* ─── ARTICLE: AROMATASE INHIBITOR ───────────────── */
   if (scr === "articleAI") return (
     <Scr scroll>
-      <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
+      <div style={{ height: SAFE_TOP_SPACER, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <div style={{ height: 359, overflow: "hidden" }}>
+        <div style={{ minHeight: 240, height: "clamp(240px, 42vh, 359px)", overflow: "hidden" }}>
           <img src={AIIllustration} alt="Aromatase Inhibitor" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         </div>
         <BackBtn go={back} overlay />
@@ -1784,7 +1668,7 @@ function RootinApp() {
   );
 
   /* ─── SYMPTOMS GRID ───────────────────────────────── */
-  if (scr === "sympGrid") return <GridMenu back={back} title="Symptoms" topGap={32} gridGap={12} cardW={173} cardH={133}
+  if (scr === "sympGrid") return <GridMenu back={back} title="Symptoms" topGap={32} gridGap={12}
     subtitle="While aromatase inhibitors improve survival outcomes, they can cause side effects related to low estrogen levels. Common symptoms include heart-related risks, bone loss, joint and muscle pain, hot flashes, fatigue, sleep problems, and mood changes.¹² ¹⁶"
     items={[
       { label: "Cardiovascular",      Icon: CardioVIcon,   go: () => go("aCardio") },
@@ -1854,13 +1738,13 @@ function RootinApp() {
   /* ─── SYMPTOM MANAGEMENT ─────────────────────────── */
   if (scr === "symptomMgmt") return (
     <Scr scroll>
-      <div style={{ height: 62, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
-      <div style={{ position: "relative", flexShrink: 0, height: 62 }}>
+      <div style={{ height: SAFE_TOP_SPACER, flexShrink: 0, position: "sticky", top: 0, zIndex: 20, background: C.bg }} />
+      <div style={{ position: "relative", flexShrink: 0, minHeight: 56 }}>
         <BackBtn go={back} overlay />
       </div>
-      <div style={{ padding: "60px 20px 60px" }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 88 }}>Symptom Management</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 173px)", justifyContent: "center", gap: 12 }}>
+      <div style={{ padding: "48px 20px 60px" }}>
+        <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 48 }}>Symptom Management</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
           {[
             { label: "Cardiovascular", Icon: CardioVIcon,  go: () => go("mCardio") },
             { label: "Osteoporosis",   Icon: OsteoPIcon,   go: () => go("mOsteo") },
@@ -1868,7 +1752,7 @@ function RootinApp() {
             { label: "Hot Flashes",    Icon: HotflashIcon, go: () => go("mHotFlash") },
             { label: "Fatigue",        Icon: FatigueIcon,  go: () => go("mFatigue") },
           ].map(item => (
-            <div key={item.label} onClick={item.go} style={{ width: 173, height: 133, boxSizing: "border-box", background: "white", borderRadius: 16, padding: "22px 12px 18px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, border: `1.5px solid ${C.brown}33`, cursor: "pointer" }}>
+            <div key={item.label} onClick={item.go} style={{ minHeight: 133, boxSizing: "border-box", width: "100%", background: "white", borderRadius: 16, padding: "22px 12px 18px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, border: `1.5px solid ${C.brown}33`, cursor: "pointer" }}>
               <img src={item.Icon} alt={item.label} style={{ width: 32, height: 32, display: "block" }} />
               <p style={{ fontSize: 13, fontWeight: 600, textAlign: "center", color: C.dark }}>{item.label}</p>
             </div>
@@ -1923,10 +1807,14 @@ function RootinApp() {
   );
 }
 
-/* ─── iPhone 16 Pro Frame ─────────────────────────────────── */
+/* ─── App shell ────────────────────────────────────────────
+   Mobile/tablet (<768px): fluid full-screen layout.
+   Desktop (≥768px): fixed 393×852 phone-frame mockup for demos,
+   scaled to fit the stage. Safe-area CSS vars fake notch/home-indicator
+   clearance inside the mockup so screens keep their original spacing. */
 export default function App() {
-  const isMobile = useIsMobile();
-  const scale = useScale();
+  const isDesktop = useIsDesktopMockup();
+  const scale = useDesktopScale(isDesktop);
   const screenRef = useRef(null);
 
   const handleCapture = async () => {
@@ -1942,36 +1830,58 @@ export default function App() {
     link.click();
   };
 
+  const safeVars = isDesktop
+    ? { "--safe-top": "60px", "--safe-bottom": "20px" }
+    : { "--safe-top": "env(safe-area-inset-top, 0px)", "--safe-bottom": "env(safe-area-inset-bottom, 0px)" };
+
+  if (!isDesktop) {
+    return (
+      <div style={{
+        width: "100%",
+        height: "100dvh",
+        background: C.bg,
+        fontFamily: FONT_FAMILY,
+        overflow: "hidden",
+        ...safeVars,
+      }}>
+        <div ref={screenRef} style={{ width: "100%", height: "100%" }}>
+          <RootinApp />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
+      width: "100%",
       minHeight: "100dvh",
-      background: isMobile ? C.bg : "#111",
-      fontFamily: "'DM Sans', sans-serif",
+      background: "#111",
+      fontFamily: FONT_FAMILY,
+      overflow: "hidden",
+      ...safeVars,
     }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        ::-webkit-scrollbar { display: none; }
-      `}</style>
-
       <div style={{
-        width: 393,
-        height: 852,
-        borderRadius: isMobile ? 0 : 54,
-        overflow: "hidden",
+        width: 393 * scale,
+        height: 852 * scale,
         position: "relative",
-        transform: isMobile ? `scale(${scale})` : "none",
-        transformOrigin: "top center",
-        boxShadow: isMobile
-          ? "none"
-          : "0 0 0 10px #2a2a2a, 0 0 0 12px #3a3a3a, 0 30px 80px rgba(0,0,0,0.8)",
         flexShrink: 0,
-        background: C.bg,
       }}>
-        {!isMobile && (
+        <div style={{
+          width: 393,
+          height: 852,
+          borderRadius: 54,
+          overflow: "hidden",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          boxShadow: "0 0 0 10px #2a2a2a, 0 0 0 12px #3a3a3a, 0 30px 80px rgba(0,0,0,0.8)",
+          background: C.bg,
+        }}>
           <div style={{
             position: "absolute",
             top: 14, left: "50%",
@@ -1981,26 +1891,25 @@ export default function App() {
             background: "#000",
             zIndex: 100,
           }} />
-        )}
 
-        {/* ✅ ref — 앱 화면만 캡처 */}
-        <div ref={screenRef} style={{ width: "100%", height: "100%" }}>
-          <RootinApp />
+          {/* ✅ ref — 앱 화면만 캡처 */}
+          <div ref={screenRef} style={{ width: "100%", height: "100%" }}>
+            <RootinApp />
+          </div>
         </div>
       </div>
 
-      {!isMobile && (
-        <button onClick={handleCapture} style={{
-          position: "fixed", bottom: 32, right: 32,
-          background: "#344C3D", color: "white",
-          border: "none", borderRadius: 100,
-          padding: "12px 24px", fontSize: 15,
-          fontWeight: 600, cursor: "pointer",
-          fontFamily: "'DM Sans', sans-serif",
-        }}>
-          📷 캡처
-        </button>
-      )}
+      <button onClick={handleCapture} style={{
+        position: "fixed", bottom: 32, right: 32,
+        background: "#344C3D", color: "white",
+        border: "none", borderRadius: 100,
+        padding: "12px 24px", fontSize: 15,
+        fontWeight: 600, cursor: "pointer",
+        fontFamily: FONT_FAMILY,
+        zIndex: 50,
+      }}>
+        📷 캡처
+      </button>
     </div>
   );
 }
